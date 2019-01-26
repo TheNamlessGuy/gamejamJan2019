@@ -17,28 +17,28 @@ struct player {
 };
 
 struct world {
-  cpSpace* space = nullptr;
+    cpSpace* space = nullptr;
 
     array<cpShape*, GOOD_ENOUGH> grounds;
     array<player, GOOD_ENOUGH> players;
 
     cpCollisionHandler* pgch;
 
-  void destroy() {
-    if (!space) {
-      return;
+    void destroy() {
+        if (!space) {
+            return;
+        }
+        for (auto& ground : grounds) {
+            cpShapeFree(ground);
+        }
+        for (auto& player : players) {
+            cpShapeFree(player.shape);
+            cpBodyFree(player.body);
+        }
+        grounds.used_size = 0;
+        players.used_size = 0;
+        cpSpaceFree(space);
     }
-    for (auto& ground : grounds) {
-      cpShapeFree(ground);
-    }
-    for (auto& player : players) {
-      cpShapeFree(player.shape);
-      cpBodyFree(player.body);
-    }
-    grounds.used_size = 0;
-    players.used_size = 0;
-    cpSpaceFree(space);
-  }
 };
 
 unsigned char collisionstart(cpArbiter *arb, struct cpSpace *space, void* data) {
@@ -69,28 +69,28 @@ void collisionend(cpArbiter *arb, struct cpSpace *space, cpDataPointer data) {
 }
 
 double pdouble(std::string const& properties, std::string const& prop) {
-  for (unsigned int i = 0; i < properties.size(); ++i) {
-    if (properties.size() - i < prop.size()) {
-      std::cout << prop << std::endl;
-      crash("PDOBULE NO FOUND");
-    }
-    std::string p = properties.substr(i, prop.size());
-    if (p == prop) {
-      unsigned int j = i + prop.size() + 1;
-      unsigned int c = 0;
-      for (; j < properties.size(); ++j) {
-        if (properties[j] == ',') {
-          break;
+    for (unsigned int i = 0; i < properties.size(); ++i) {
+        if (properties.size() - i < prop.size()) {
+            std::cout << prop << std::endl;
+            crash("PDOBULE NO FOUND");
         }
-        c++;
-      }
-      unsigned int s = i + prop.size() + 1;
-      std::string v = properties.substr(s, c);
-      return std::stod(v);
+        std::string p = properties.substr(i, prop.size());
+        if (p == prop) {
+            unsigned int j = i + prop.size() + 1;
+            unsigned int c = 0;
+            for (; j < properties.size(); ++j) {
+                if (properties[j] == ',') {
+                    break;
+                }
+                c++;
+            }
+            unsigned int s = i + prop.size() + 1;
+            std::string v = properties.substr(s, c);
+            return std::stod(v);
+        }
     }
-  }
-  crash("PDOUBLE NO FOUND");
-  return 13.37;
+    crash("PDOUBLE NO FOUND");
+    return 13.37;
 }
 
 std::map<std::string, void (*)(std::string const& properties, world& w)> thingloaders = {
@@ -147,77 +147,93 @@ void loadworld(world& w, std::string const& filename) {
 }
 
 void destroytheworld(world& w) {
-  w.destroy();
+    w.destroy();
 }
 
 #include "events.h"
 
 void updatew(world& w) {
-  if (LEFT) {
-    for (auto& player : w.players) {
-      const cpVect& vec = cpBodyGetVelocity(player.body);
-      cpVect impulse = cpv(0, 0);
-      if (vec.x > -100) impulse.x -= 100;
-      cpBodyApplyImpulseAtLocalPoint(player.body, cpvrotate(impulse, cpBodyGetRotation(player.body)), cpv(0, 0));
+    if (LEFT) {
+        for (auto& player : w.players) {
+            if (player.standing) {
+                const cpVect& vec = cpBodyGetVelocity(player.body);
+                cpVect impulse = cpv(0, 0);
+                impulse.x -= 100;
+                impulse.y = vec.y;
+                cpBodySetVelocity(player.body, impulse);
+            }
+        }
+    } else if (RIGHT) {
+        for (auto& player : w.players) {
+            if (player.standing) {
+                const cpVect& vec = cpBodyGetVelocity(player.body);
+                cpVect impulse = cpv(0, 0);
+                impulse.x += 100;
+                impulse.y = vec.y;
+                cpBodySetVelocity(player.body, impulse);
+            }
+        }
+    } else if (UP) {
+        for (auto& player : w.players) {
+            if (player.standing) {
+                const cpVect& vec = cpBodyGetVelocity(player.body);
+                cpVect impulse = cpv(0, 0);
+                impulse.x = vec.x;
+                impulse.y -= 200;
+                cpBodySetVelocity(player.body, impulse);
+            }
+        }
     }
-  } else if (RIGHT) {
-    for (auto& player : w.players) {
-      const cpVect& vec = cpBodyGetVelocity(player.body);
-      cpVect impulse = cpv(0, 0);
-      if (vec.x < 100) impulse.x += 100;
-      cpBodyApplyImpulseAtLocalPoint(player.body, cpvrotate(impulse, cpBodyGetRotation(player.body)), cpv(0, 0));
-    }
-  }
-  cpSpaceStep(w.space, 1.0f / MAXIMUM_PERCIEVABLE_FRAMERATE);
+    cpSpaceStep(w.space, 1.0f / MAXIMUM_PERCIEVABLE_FRAMERATE);
 }
 
 void drawworld_debug(world& w) {
-  for (auto& player : w.players) {
-    cpVect pos = cpBodyGetPosition(player.body);
-    cpFloat radius = cpPolyShapeGetRadius(player.shape);
-    cpVect rot = cpBodyGetRotation(player.body);
-    double t = atan2(rot.y, rot.x);
-    for (int i = 1; i <= cpPolyShapeGetCount(player.shape); ++i) {
-      cpVect from = cpPolyShapeGetVert(player.shape, i - 1);
-      int j = i;
-      if (j == cpPolyShapeGetCount(player.shape)) {
-        j = 0;
-      }
-      cpVect to = cpPolyShapeGetVert(player.shape, j);
-      double fromt = atan2(from.y, from.x);
-      double fromr = sqrt(from.y*from.y + from.x*from.x);
-      double tot = atan2(to.y, to.x);
-      double tor = sqrt(to.y*to.y + to.x*to.x);
+    for (auto& player : w.players) {
+        cpVect pos = cpBodyGetPosition(player.body);
+        cpFloat radius = cpPolyShapeGetRadius(player.shape);
+        cpVect rot = cpBodyGetRotation(player.body);
+        double t = atan2(rot.y, rot.x);
+        for (int i = 1; i <= cpPolyShapeGetCount(player.shape); ++i) {
+            cpVect from = cpPolyShapeGetVert(player.shape, i - 1);
+            int j = i;
+            if (j == cpPolyShapeGetCount(player.shape)) {
+                j = 0;
+            }
+            cpVect to = cpPolyShapeGetVert(player.shape, j);
+            double fromt = atan2(from.y, from.x);
+            double fromr = sqrt(from.y*from.y + from.x*from.x);
+            double tot = atan2(to.y, to.x);
+            double tor = sqrt(to.y*to.y + to.x*to.x);
 
-      double fromx = fromr * cos(t + fromt);
-      double fromy = fromr * sin(t + fromt);
-      double tox = tor * cos(t + tot);
-      double toy = tor * sin(t + tot);
+            double fromx = fromr * cos(t + fromt);
+            double fromy = fromr * sin(t + fromt);
+            double tox = tor * cos(t + tot);
+            double toy = tor * sin(t + tot);
 
-      thickLineRGBA(engine_data->sdl2_data.renderer.handle,
-                    pos.x + fromx,
-                    pos.y + fromy,
-                    pos.x + tox,
-                    pos.y + toy,
-                    radius,
-                    255,
-                    255,
-                    255,
-                    255);
+            thickLineRGBA(engine_data->sdl2_data.renderer.handle,
+                          pos.x + fromx,
+                          pos.y + fromy,
+                          pos.x + tox,
+                          pos.y + toy,
+                          radius,
+                          255,
+                          255,
+                          255,
+                          255);
+        }
     }
-  }
-  for (auto& ground : w.grounds) {
-    cpVect a = cpSegmentShapeGetA(ground);
-    cpVect b = cpSegmentShapeGetB(ground);
-    thickLineRGBA(engine_data->sdl2_data.renderer.handle,
-                  a.x,
-                  a.y,
-                  b.x,
-                  b.y,
-                  1,
-                  0,
-                  255,
-                  0,
-                  255);
-  }
+    for (auto& ground : w.grounds) {
+        cpVect a = cpSegmentShapeGetA(ground);
+        cpVect b = cpSegmentShapeGetB(ground);
+        thickLineRGBA(engine_data->sdl2_data.renderer.handle,
+                      a.x,
+                      a.y,
+                      b.x,
+                      b.y,
+                      1,
+                      0,
+                      255,
+                      0,
+                      255);
+    }
 }

@@ -90,6 +90,7 @@ void handle_window_event( SDL_WindowEvent* e )
 
 bool LEFT = false;
 bool RIGHT = false;
+bool UP = false;
 
 void handle_key_press( SDL_KeyboardEvent* e )
 {
@@ -100,6 +101,9 @@ void handle_key_press( SDL_KeyboardEvent* e )
     case SDLK_RIGHT:
       RIGHT = (e->state == SDL_PRESSED);
       break;
+      case SDLK_UP:
+          UP = (e->state == SDL_PRESSED);
+          break;
     default:
       break;
   }
