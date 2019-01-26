@@ -7,6 +7,7 @@
 #include <SDL2/SDL_net.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
 
 void init_frameworks()
 {

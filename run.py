@@ -7,10 +7,10 @@
 
 compiler            = "clang++"
 misc_flags          = [ "-std=c++14", "-pthread", "-lm", "-fno-rtti", "-fno-exceptions", "-I../src" ]
-libs                = [ "-lSDL2", "-lSDL2_net", "-lSDL2_image", "-lSDL2_ttf", "-lSDL2_mixer", "libext.a" ]
+libs                = [ "-lSDL2", "-lSDL2_net", "-lSDL2_image", "-lSDL2_ttf", "-lSDL2_mixer", "-lSDL2_gfx", "libext.a" ]
 opt_flags           = [ "-Ofast", "-ffast-math", "-march=native", "-ftree-vectorize", "-flto", "-fassociative-math", "-msse4.2" ]
 src_path            = "src"
-compile_exts        = [ "cpp", "c", "cc" ] 
+compile_exts        = [ "cpp", "c", "cc" ]
 
 import os
 import sys
@@ -19,10 +19,10 @@ import shutil
 # recursive function that fetches all files in a directory with a given file extension
 def get_files( base_path, exts ):
     files = []
-    
+
     if not os.path.exists( base_path ):
         return files
-    
+
     for entry in os.listdir( base_path ):
         path = os.path.join( base_path, entry )
         if os.path.isdir( path ):
@@ -32,7 +32,7 @@ def get_files( base_path, exts ):
                 if os.path.isfile( path ) and path.endswith( ext ):
                     files += [ path ]
                     break
-    
+
     return files
 
 if __name__ == "__main__":
@@ -57,15 +57,14 @@ if __name__ == "__main__":
     # merge all arguments and pass them to the command line
     files = [ os.path.join( "..", main_file ) ] + get_files( os.path.join( "..", src_path ), compile_exts )
     flags = misc_flags + libs + opt_flags
-    
+
     # build
-    build_cmd = " ".join( [ compiler ] + files + flags + [ "-o", program_name ] )    
+    build_cmd = " ".join( [ compiler ] + files + flags + [ "-o", program_name ] )
     print( build_cmd )
     if ( os.system( build_cmd ) != 0 ):
         sys.exit()
-    
+
     # move/overwrite executable run
     os.system( "mv -f " + program_name + " .." )
     os.chdir( ".." )
     os.system( "./" + program_name )
-

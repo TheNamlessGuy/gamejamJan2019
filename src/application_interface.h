@@ -48,6 +48,7 @@ void update_application_logic() {
 
 void draw_application_view() {
     drawt(example, &examplerect);
+    lineRGBA(engine_data->sdl2_data.renderer.handle, 128, 128, 365, 256, 255, 0, 0, 255);
 }
 
 void init_application() {
