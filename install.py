@@ -44,7 +44,7 @@ def get_files( base_path, exts ):
     
     return files
 
-if True: #__name__ == "__main__":
+if __name__ == "__main__":
     # extra arguments
     arg_list = [ arg.lower() for arg in sys.argv[2:] ]
     if not "fast" in arg_list:
@@ -66,4 +66,3 @@ if True: #__name__ == "__main__":
     build_cmd = " ".join( [ "ar", "-cvq", "libext.a" ] + files )
     print( build_cmd )
     os.system( build_cmd )
-    
