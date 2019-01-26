@@ -1,15 +1,15 @@
 /* Copyright (c) 2013 Scott Lembcke and Howling Moon Software
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,7 +32,7 @@ void
 cpMessage(const char *condition, const char *file, int line, int isError, int isHardError, const char *message, ...)
 {
 	fprintf(stderr, (isError ? "Aborting due to Chipmunk error: " : "Chipmunk warning: "));
-	
+
 	va_list vargs;
 	va_start(vargs, message); {
 #if defined(ANDROID)
@@ -43,7 +43,7 @@ cpMessage(const char *condition, const char *file, int line, int isError, int is
 		fprintf(stderr, "\n");
 #endif
 	} va_end(vargs);
-	
+
 #if defined(ANDROID)
 	__android_log_print(ANDROID_LOG_INFO, "Chipmunk", "\tFailed condition: %s\n", condition);
 	__android_log_print(ANDROID_LOG_INFO, "Chipmunk", "\tSource:%s:%d\n", file, line);
@@ -76,7 +76,7 @@ cpFloat
 cpMomentForSegment(cpFloat m, cpVect a, cpVect b, cpFloat r)
 {
 	cpVect offset = cpvlerp(a, b, 0.5f);
-	
+
 	// This approximates the shape as a box for rounded segments, but it's quite close.
 	cpFloat length = cpvdist(b, a) + 2.0f*r;
 	return m*((length*length + 4.0f*r*r)/12.0f + cpvlengthsq(offset));
@@ -93,20 +93,20 @@ cpMomentForPoly(cpFloat m, const int count, const cpVect *verts, cpVect offset, 
 {
 	// TODO account for radius.
 	if(count == 2) return cpMomentForSegment(m, verts[0], verts[1], 0.0f);
-	
+
 	cpFloat sum1 = 0.0f;
 	cpFloat sum2 = 0.0f;
 	for(int i=0; i<count; i++){
 		cpVect v1 = cpvadd(verts[i], offset);
 		cpVect v2 = cpvadd(verts[(i+1)%count], offset);
-		
+
 		cpFloat a = cpvcross(v2, v1);
 		cpFloat b = cpvdot(v1, v1) + cpvdot(v1, v2) + cpvdot(v2, v2);
-		
+
 		sum1 += a*b;
 		sum2 += a;
 	}
-	
+
 	return (m*sum1)/(6.0f*sum2);
 }
 
@@ -118,11 +118,11 @@ cpAreaForPoly(const int count, const cpVect *verts, cpFloat r)
 	for(int i=0; i<count; i++){
 		cpVect v1 = verts[i];
 		cpVect v2 = verts[(i+1)%count];
-		
+
 		area += cpvcross(v1, v2);
 		perimeter += cpvdist(v1, v2);
 	}
-	
+
 	return r*(CP_PI*cpfabs(r) + perimeter) + area/2.0f;
 }
 
@@ -131,23 +131,23 @@ cpCentroidForPoly(const int count, const cpVect *verts)
 {
 	cpFloat sum = 0.0f;
 	cpVect vsum = cpvzero;
-	
+
 	for(int i=0; i<count; i++){
 		cpVect v1 = verts[i];
 		cpVect v2 = verts[(i+1)%count];
 		cpFloat cross = cpvcross(v1, v2);
-		
+
 		sum += cross;
 		vsum = cpvadd(vsum, cpvmult(cpvadd(v1, v2), cross));
 	}
-	
+
 	return cpvmult(vsum, 1.0f/(3.0f*sum));
 }
 
 //void
 //cpRecenterPoly(const int count, cpVect *verts){
 //	cpVect centroid = cpCentroidForPoly(count, verts);
-//	
+//
 //	for(int i=0; i<count; i++){
 //		verts[i] = cpvsub(verts[i], centroid);
 //	}
@@ -165,7 +165,7 @@ cpMomentForBox2(cpFloat m, cpBB box)
 	cpFloat width = box.r - box.l;
 	cpFloat height = box.t - box.b;
 	cpVect offset = cpvmult(cpv(box.l + box.r, box.b + box.t), 0.5f);
-	
+
 	// TODO: NaN when offset is 0 and m is INFINITY
 	return cpMomentForBox(m, width, height) + m*cpvlengthsq(offset);
 }
@@ -178,10 +178,10 @@ cpLoopIndexes(const cpVect *verts, int count, int *start, int *end)
 	(*start) = (*end) = 0;
 	cpVect min = verts[0];
 	cpVect max = min;
-	
+
   for(int i=1; i<count; i++){
     cpVect v = verts[i];
-		
+
     if(v.x < min.x || (v.x == min.x && v.y < min.y)){
       min = v;
       (*start) = i;
@@ -198,13 +198,13 @@ static int
 QHullPartition(cpVect *verts, int count, cpVect a, cpVect b, cpFloat tol)
 {
 	if(count == 0) return 0;
-	
+
 	cpFloat max = 0;
 	int pivot = 0;
-	
+
 	cpVect delta = cpvsub(b, a);
 	cpFloat valueTol = tol*cpvlength(delta);
-	
+
 	int head = 0;
 	for(int tail = count-1; head <= tail;){
 		cpFloat value = cpvcross(cpvsub(verts[head], a), delta);
@@ -213,14 +213,14 @@ QHullPartition(cpVect *verts, int count, cpVect a, cpVect b, cpFloat tol)
 				max = value;
 				pivot = head;
 			}
-			
+
 			head++;
 		} else {
 			SWAP(verts[head], verts[tail]);
 			tail--;
 		}
 	}
-	
+
 	// move the new pivot to the front if it's not already there.
 	if(pivot != 0) SWAP(verts[0], verts[pivot]);
 	return head;
@@ -237,9 +237,9 @@ QHullReduce(cpFloat tol, cpVect *verts, int count, cpVect a, cpVect pivot, cpVec
 	} else {
 		int left_count = QHullPartition(verts, count, a, pivot, tol);
 		int index = QHullReduce(tol, verts + 1, left_count - 1, a, verts[0], pivot, result);
-		
+
 		result[index++] = pivot;
-		
+
 		int right_count = QHullPartition(verts + left_count, count - left_count, pivot, b, tol);
 		return index + QHullReduce(tol, verts + left_count + 1, right_count - 1, pivot, verts[left_count], b, result + index);
 	}
@@ -254,7 +254,7 @@ cpConvexHull(int count, const cpVect *verts, cpVect *result, int *first, cpFloat
 		// Copy the line vertexes into the empty part of the result polyline to use as a scratch buffer.
 		memcpy(result, verts, count*sizeof(cpVect));
 	}
-	
+
 	// Degenerate case, all points are the same.
 	int start, end;
 	cpLoopIndexes(verts, count, &start, &end);
@@ -262,13 +262,13 @@ cpConvexHull(int count, const cpVect *verts, cpVect *result, int *first, cpFloat
 		if(first) (*first) = 0;
 		return 1;
 	}
-	
+
 	SWAP(result[0], result[start]);
 	SWAP(result[1], result[end == 0 ? start : end]);
-	
+
 	cpVect a = result[0];
 	cpVect b = result[1];
-	
+
 	if(first) (*first) = start;
 	return QHullReduce(tol, result + 2, count - 2, a, b, a, result + 1) + 1;
 }

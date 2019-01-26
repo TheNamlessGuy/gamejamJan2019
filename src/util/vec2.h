@@ -5,7 +5,7 @@
 struct alignas(8) vec2
 {
     float x, y;
-    
+
     float& operator[]( int i )              { return (&x)[i]; }
     const float& operator[]( int i ) const  { return (&x)[i]; }
 };
@@ -36,7 +36,7 @@ inline vec2     snap( const vec2& v )                       { return vec2{ round
 inline vec2     fill_vec2( float f )                        { return vec2{ f, f }; }
 
 inline vec2 create_rotated( float angle, float length = 1.0f )
-{ 
+{
     return vec2{ cosf( angle ), sinf( angle ) } * length;
 }
 

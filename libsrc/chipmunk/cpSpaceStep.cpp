@@ -1,15 +1,15 @@
 /* Copyright (c) 2013 Scott Lembcke and Howling Moon Software
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,7 +31,7 @@ cpSpaceGetPostStepCallback(cpSpace *space, void *key)
 		cpPostStepCallback *callback = (cpPostStepCallback *)arr->arr[i];
 		if(callback && callback->key == key) return callback;
 	}
-	
+
 	return NULL;
 }
 
@@ -43,13 +43,13 @@ cpSpaceAddPostStepCallback(cpSpace *space, cpPostStepFunc func, void *key, void 
 	cpAssertWarn(space->locked,
 		"Adding a post-step callback when the space is not locked is unnecessary. "
 		"Post-step callbacks will not called until the end of the next call to cpSpaceStep() or the next query.");
-	
+
 	if(!cpSpaceGetPostStepCallback(space, key)){
 		cpPostStepCallback *callback = (cpPostStepCallback *)cpcalloc(1, sizeof(cpPostStepCallback));
 		callback->func = (func ? func : PostStepDoNothing);
 		callback->key = key;
 		callback->data = data;
-		
+
 		cpArrayPush(space->postStepCallbacks, callback);
 		return cpTrue;
 	} else {
@@ -70,34 +70,34 @@ cpSpaceUnlock(cpSpace *space, cpBool runPostStep)
 {
 	space->locked--;
 	cpAssertHard(space->locked >= 0, "Internal Error: Space lock underflow.");
-	
+
 	if(space->locked == 0){
 		cpArray *waking = space->rousedBodies;
-		
+
 		for(int i=0, count=waking->num; i<count; i++){
 			cpSpaceActivateBody(space, (cpBody *)waking->arr[i]);
 			waking->arr[i] = NULL;
 		}
-		
+
 		waking->num = 0;
-		
+
 		if(space->locked == 0 && runPostStep && !space->skipPostStep){
 			space->skipPostStep = cpTrue;
-			
+
 			cpArray *arr = space->postStepCallbacks;
 			for(int i=0; i<arr->num; i++){
 				cpPostStepCallback *callback = (cpPostStepCallback *)arr->arr[i];
 				cpPostStepFunc func = callback->func;
-				
+
 				// Mark the func as NULL in case calling it calls cpSpaceRunPostStepCallbacks() again.
 				// TODO: need more tests around this case I think.
 				callback->func = NULL;
 				if(func) func(space, callback->key, callback->data);
-				
+
 				arr->arr[i] = NULL;
 				cpfree(callback);
 			}
-			
+
 			arr->num = 0;
 			space->skipPostStep = cpFalse;
 		}
@@ -132,7 +132,7 @@ cpContactBufferHeaderInit(cpContactBufferHeader *header, cpTimestamp stamp, cpCo
 	header->stamp = stamp;
 	header->next = (splice ? splice->next : header);
 	header->numContacts = 0;
-	
+
 	return header;
 }
 
@@ -140,9 +140,9 @@ void
 cpSpacePushFreshContactBuffer(cpSpace *space)
 {
 	cpTimestamp stamp = space->stamp;
-	
+
 	cpContactBufferHeader *head = space->contactBuffersHead;
-	
+
 	if(!head){
 		// No buffers have been allocated, make one
 		space->contactBuffersHead = cpContactBufferHeaderInit(cpSpaceAllocContactBuffer(space), stamp, NULL);
@@ -165,7 +165,7 @@ cpContactBufferGetArray(cpSpace *space)
 		// contact buffer could overflow on the next collision, push a fresh one.
 		cpSpacePushFreshContactBuffer(space);
 	}
-	
+
 	cpContactBufferHeader *head = space->contactBuffersHead;
 	return ((cpContactBuffer *)head)->contacts + head->numContacts;
 }
@@ -191,13 +191,13 @@ cpSpaceArbiterSetTrans(cpShape **shapes, cpSpace *space)
 		// arbiter pool is exhausted, make more
 		int count = CP_BUFFER_BYTES/sizeof(cpArbiter);
 		cpAssertHard(count, "Internal Error: Buffer size too small.");
-		
+
 		cpArbiter *buffer = (cpArbiter *)cpcalloc(1, CP_BUFFER_BYTES);
 		cpArrayPush(space->allocatedBuffers, buffer);
-		
+
 		for(int i=0; i<count; i++) cpArrayPush(space->pooledArbiters, buffer + i);
 	}
-	
+
 	return cpArbiterInit((cpArbiter *)cpArrayPop(space->pooledArbiters), shapes[0], shapes[1]);
 }
 
@@ -212,7 +212,7 @@ QueryRejectConstraint(cpBody *a, cpBody *b)
 			)
 		) return cpTrue;
 	}
-	
+
 	return cpFalse;
 }
 
@@ -237,30 +237,30 @@ cpSpaceCollideShapes(cpShape *a, cpShape *b, cpCollisionID id, cpSpace *space)
 {
 	// Reject any of the simple cases
 	if(QueryReject(a,b)) return id;
-	
+
 	// Narrow-phase collision detection.
 	struct cpCollisionInfo info = cpCollide(a, b, id, cpContactBufferGetArray(space));
-	
+
 	if(info.count == 0) return info.id; // Shapes are not colliding.
 	cpSpacePushContacts(space, info.count);
-	
+
 	// Get an arbiter from space->arbiterSet for the two shapes.
 	// This is where the persistant contact magic comes from.
 	const cpShape *shape_pair[] = {info.a, info.b};
 	cpHashValue arbHashID = CP_HASH_PAIR((cpHashValue)info.a, (cpHashValue)info.b);
 	cpArbiter *arb = (cpArbiter *)cpHashSetInsert(space->cachedArbiters, arbHashID, shape_pair, (cpHashSetTransFunc)cpSpaceArbiterSetTrans, space);
 	cpArbiterUpdate(arb, &info, space);
-	
+
 	cpCollisionHandler *handler = arb->handler;
-	
+
 	// Call the begin function first if it's the first step
 	if(arb->state == CP_ARBITER_STATE_FIRST_COLLISION && !handler->beginFunc(arb, space, handler->userData)){
 		cpArbiterIgnore(arb); // permanently ignore the collision until separation
 	}
-	
+
 	if(
 		// Ignore the arbiter if it has been flagged
-		(arb->state != CP_ARBITER_STATE_IGNORE) && 
+		(arb->state != CP_ARBITER_STATE_IGNORE) &&
 		// Call preSolve
 		handler->preSolveFunc(arb, space, handler->userData) &&
 		// Check (again) in case the pre-solve() callback called cpArbiterIgnored().
@@ -274,15 +274,15 @@ cpSpaceCollideShapes(cpShape *a, cpShape *b, cpCollisionID id, cpSpace *space)
 		cpArrayPush(space->arbiters, arb);
 	} else {
 		cpSpacePopContacts(space, info.count);
-		
+
 		arb->contacts = NULL;
 		arb->count = 0;
-		
+
 		// Normally arbiters are set as used after calling the post-solve callback.
 		// However, post-solve() callbacks are not called for sensors or arbiters rejected from pre-solve.
 		if(arb->state != CP_ARBITER_STATE_IGNORE) arb->state = CP_ARBITER_STATE_NORMAL;
 	}
-	
+
 	// Time stamp the arbiter so we know it was used recently.
 	arb->stamp = space->stamp;
 	return info.id;
@@ -293,9 +293,9 @@ cpBool
 cpSpaceArbiterSetFilter(cpArbiter *arb, cpSpace *space)
 {
 	cpTimestamp ticks = space->stamp - arb->stamp;
-	
+
 	cpBody *a = arb->body_a, *b = arb->body_b;
-	
+
 	// TODO: should make an arbiter state for this so it doesn't require filtering arbiters for dangling body pointers on body removal.
 	// Preserve arbiters on sensors and rejected arbiters for sleeping objects.
 	// This prevents errant separate callbacks from happenening.
@@ -305,22 +305,22 @@ cpSpaceArbiterSetFilter(cpArbiter *arb, cpSpace *space)
 	){
 		return cpTrue;
 	}
-	
+
 	// Arbiter was used last frame, but not this one
 	if(ticks >= 1 && arb->state != CP_ARBITER_STATE_CACHED){
 		arb->state = CP_ARBITER_STATE_CACHED;
 		cpCollisionHandler *handler = arb->handler;
 		handler->separateFunc(arb, space, handler->userData);
 	}
-	
+
 	if(ticks >= space->collisionPersistence){
 		arb->contacts = NULL;
 		arb->count = 0;
-		
+
 		cpArrayPush(space->pooledArbiters, arb);
 		return cpFalse;
 	}
-	
+
 	return cpTrue;
 }
 
@@ -337,21 +337,21 @@ cpSpaceStep(cpSpace *space, cpFloat dt)
 {
 	// don't step if the timestep is 0!
 	if(dt == 0.0f) return;
-	
+
 	space->stamp++;
-	
+
 	cpFloat prev_dt = space->curr_dt;
 	space->curr_dt = dt;
-		
+
 	cpArray *bodies = space->dynamicBodies;
 	cpArray *constraints = space->constraints;
 	cpArray *arbiters = space->arbiters;
-	
+
 	// Reset and empty the arbiter lists.
 	for(int i=0; i<arbiters->num; i++){
 		cpArbiter *arb = (cpArbiter *)arbiters->arr[i];
 		arb->state = CP_ARBITER_STATE_NORMAL;
-		
+
 		// If both bodies are awake, unthread the arbiter from the contact graph.
 		if(!cpBodyIsSleeping(arb->body_a) && !cpBodyIsSleeping(arb->body_b)){
 			cpArbiterUnthread(arb);
@@ -365,16 +365,16 @@ cpSpaceStep(cpSpace *space, cpFloat dt)
 			cpBody *body = (cpBody *)bodies->arr[i];
 			body->position_func(body, dt);
 		}
-		
+
 		// Find colliding pairs.
 		cpSpacePushFreshContactBuffer(space);
 		cpSpatialIndexEach(space->dynamicShapes, (cpSpatialIndexIteratorFunc)cpShapeUpdateFunc, NULL);
 		cpSpatialIndexReindexQuery(space->dynamicShapes, (cpSpatialIndexQueryFunc)cpSpaceCollideShapes, space);
 	} cpSpaceUnlock(space, cpFalse);
-	
+
 	// Rebuild the contact graph (and detect sleeping components if sleeping is enabled)
 	cpSpaceProcessComponents(space, dt);
-	
+
 	cpSpaceLock(space); {
 		// Clear out old cached arbiters and call separate callbacks
 		cpHashSetFilter(space->cachedArbiters, (cpHashSetFilterFunc)cpSpaceArbiterSetFilter, space);
@@ -388,13 +388,13 @@ cpSpaceStep(cpSpace *space, cpFloat dt)
 
 		for(int i=0; i<constraints->num; i++){
 			cpConstraint *constraint = (cpConstraint *)constraints->arr[i];
-			
+
 			cpConstraintPreSolveFunc preSolve = constraint->preSolve;
 			if(preSolve) preSolve(constraint, space);
-			
+
 			constraint->klass->preStep(constraint, dt);
 		}
-	
+
 		// Integrate velocities.
 		cpFloat damping = cpfpow(space->damping, dt);
 		cpVect gravity = space->gravity;
@@ -402,42 +402,42 @@ cpSpaceStep(cpSpace *space, cpFloat dt)
 			cpBody *body = (cpBody *)bodies->arr[i];
 			body->velocity_func(body, gravity, damping, dt);
 		}
-		
+
 		// Apply cached impulses
 		cpFloat dt_coef = (prev_dt == 0.0f ? 0.0f : dt/prev_dt);
 		for(int i=0; i<arbiters->num; i++){
 			cpArbiterApplyCachedImpulse((cpArbiter *)arbiters->arr[i], dt_coef);
 		}
-		
+
 		for(int i=0; i<constraints->num; i++){
 			cpConstraint *constraint = (cpConstraint *)constraints->arr[i];
 			constraint->klass->applyCachedImpulse(constraint, dt_coef);
 		}
-		
+
 		// Run the impulse solver.
 		for(int i=0; i<space->iterations; i++){
 			for(int j=0; j<arbiters->num; j++){
 				cpArbiterApplyImpulse((cpArbiter *)arbiters->arr[j]);
 			}
-				
+
 			for(int j=0; j<constraints->num; j++){
 				cpConstraint *constraint = (cpConstraint *)constraints->arr[j];
 				constraint->klass->applyImpulse(constraint, dt);
 			}
 		}
-		
+
 		// Run the constraint post-solve callbacks
 		for(int i=0; i<constraints->num; i++){
 			cpConstraint *constraint = (cpConstraint *)constraints->arr[i];
-			
+
 			cpConstraintPostSolveFunc postSolve = constraint->postSolve;
 			if(postSolve) postSolve(constraint, space);
 		}
-		
+
 		// run the post-solve callbacks
 		for(int i=0; i<arbiters->num; i++){
 			cpArbiter *arb = (cpArbiter *) arbiters->arr[i];
-			
+
 			cpCollisionHandler *handler = arb->handler;
 			handler->postSolveFunc(arb, space, handler->userData);
 		}

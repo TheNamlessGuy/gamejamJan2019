@@ -25,33 +25,33 @@ cpMarchCells(
 ){
 	cpFloat x_denom = 1.0/(cpFloat)(x_samples - 1);
 	cpFloat y_denom = 1.0/(cpFloat)(y_samples - 1);
-	
+
 	// TODO range assertions and short circuit for 0 sized windows.
-	
+
 	// Keep a copy of the previous row to avoid double lookups.
 	cpFloat *buffer = (cpFloat *)cpcalloc(x_samples, sizeof(cpFloat));
 	for(unsigned long i=0; i<x_samples; i++) buffer[i] = sample(cpv(cpflerp(bb.l, bb.r, i*x_denom), bb.b), sample_data);
-	
+
 	for(unsigned long j=0; j<y_samples-1; j++){
 		cpFloat y0 = cpflerp(bb.b, bb.t, (j+0)*y_denom);
 		cpFloat y1 = cpflerp(bb.b, bb.t, (j+1)*y_denom);
-		
+
 		cpFloat a, b = buffer[0];
 		cpFloat c, d = sample(cpv(bb.l, y1), sample_data);
 		buffer[0] = d;
-		
+
 		for(unsigned long i=0; i<x_samples-1; i++){
 			cpFloat x0 = cpflerp(bb.l, bb.r, (i+0)*x_denom);
 			cpFloat x1 = cpflerp(bb.l, bb.r, (i+1)*x_denom);
-			
+
 			a = b, b = buffer[i + 1];
 			c = d, d = sample(cpv(x1, y1), sample_data);
 			buffer[i + 1] = d;
-			
+
 			cell(t, a, b, c, d, x0, x1, y0, y1, segment, segment_data);
 		}
 	}
-	
+
 	cpfree(buffer);
 }
 
@@ -125,7 +125,7 @@ cpMarchCellHard(
 	// midpoints
 	cpFloat xm = cpflerp(x0, x1, 0.5f);
 	cpFloat ym = cpflerp(y0, y1, 0.5f);
-	
+
 	switch((a>t)<<0 | (b>t)<<1 | (c>t)<<2 | (d>t)<<3){
 		case 0x1: segs(cpv(x0, ym), cpv(xm, ym), cpv(xm, y0), segment, segment_data); break;
 		case 0x2: segs(cpv(xm, y0), cpv(xm, ym), cpv(x1, ym), segment, segment_data); break;

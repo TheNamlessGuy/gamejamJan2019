@@ -1,15 +1,15 @@
 /* Copyright (c) 2013 Scott Lembcke and Howling Moon Software
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,7 +26,7 @@ preStep(cpGrooveJoint *joint, cpFloat dt)
 {
 	cpBody *a = joint->constraint.a;
 	cpBody *b = joint->constraint.b;
-	
+
 	// calculate endpoints in worldspace
 	cpVect ta = cpTransformPoint(a->transform, joint->grv_a);
 	cpVect tb = cpTransformPoint(a->transform, joint->grv_b);
@@ -34,10 +34,10 @@ preStep(cpGrooveJoint *joint, cpFloat dt)
 	// calculate axis
 	cpVect n = cpTransformVect(a->transform, joint->grv_n);
 	cpFloat d = cpvdot(ta, n);
-	
+
 	joint->grv_tn = n;
 	joint->r2 = cpTransformVect(b->transform, cpvsub(joint->anchorB, b->cog));
-	
+
 	// calculate tangential distance along the axis of r2
 	cpFloat td = cpvcross(cpvadd(b->p, joint->r2), n);
 	// calculate clamping factor and r2
@@ -51,10 +51,10 @@ preStep(cpGrooveJoint *joint, cpFloat dt)
 		joint->clamp = 0.0f;
 		joint->r1 = cpvsub(cpvadd(cpvmult(cpvperp(n), -td), cpvmult(n, d)), a->p);
 	}
-	
+
 	// Calculate mass tensor
 	joint->k = k_tensor(a, b, joint->r1, joint->r2);
-	
+
 	// calculate bias velocity
 	cpVect delta = cpvsub(cpvadd(b->p, joint->r2), cpvadd(a->p, joint->r1));
 	joint->bias = cpvclamp(cpvmult(delta, -bias_coef(joint->constraint.errorBias, dt)/dt), joint->constraint.maxBias);
@@ -65,7 +65,7 @@ applyCachedImpulse(cpGrooveJoint *joint, cpFloat dt_coef)
 {
 	cpBody *a = joint->constraint.a;
 	cpBody *b = joint->constraint.b;
-		
+
 	apply_impulses(a, b, joint->r1, joint->r2, cpvmult(joint->jAcc, dt_coef));
 }
 
@@ -81,10 +81,10 @@ applyImpulse(cpGrooveJoint *joint, cpFloat dt)
 {
 	cpBody *a = joint->constraint.a;
 	cpBody *b = joint->constraint.b;
-	
+
 	cpVect r1 = joint->r1;
 	cpVect r2 = joint->r2;
-	
+
 	// compute impulse
 	cpVect vr = relative_velocity(a, b, r1, r2);
 
@@ -92,7 +92,7 @@ applyImpulse(cpGrooveJoint *joint, cpFloat dt)
 	cpVect jOld = joint->jAcc;
 	joint->jAcc = grooveConstrain(joint, cpvadd(jOld, j), dt);
 	j = cpvsub(joint->jAcc, jOld);
-	
+
 	// apply impulse
 	apply_impulses(a, b, joint->r1, joint->r2, j);
 }
@@ -120,14 +120,14 @@ cpGrooveJoint *
 cpGrooveJointInit(cpGrooveJoint *joint, cpBody *a, cpBody *b, cpVect groove_a, cpVect groove_b, cpVect anchorB)
 {
 	cpConstraintInit((cpConstraint *)joint, &klass, a, b);
-	
+
 	joint->grv_a = groove_a;
 	joint->grv_b = groove_b;
 	joint->grv_n = cpvperp(cpvnormalize(cpvsub(groove_b, groove_a)));
 	joint->anchorB = anchorB;
-	
+
 	joint->jAcc = cpvzero;
-	
+
 	return joint;
 }
 
@@ -155,10 +155,10 @@ cpGrooveJointSetGrooveA(cpConstraint *constraint, cpVect value)
 {
 	cpAssertHard(cpConstraintIsGrooveJoint(constraint), "Constraint is not a groove joint.");
 	cpGrooveJoint *g = (cpGrooveJoint *)constraint;
-	
+
 	g->grv_a = value;
 	g->grv_n = cpvperp(cpvnormalize(cpvsub(g->grv_b, value)));
-	
+
 	cpConstraintActivateBodies(constraint);
 }
 
@@ -174,10 +174,10 @@ cpGrooveJointSetGrooveB(cpConstraint *constraint, cpVect value)
 {
 	cpAssertHard(cpConstraintIsGrooveJoint(constraint), "Constraint is not a groove joint.");
 	cpGrooveJoint *g = (cpGrooveJoint *)constraint;
-	
+
 	g->grv_b = value;
 	g->grv_n = cpvperp(cpvnormalize(cpvsub(value, g->grv_a)));
-	
+
 	cpConstraintActivateBodies(constraint);
 }
 

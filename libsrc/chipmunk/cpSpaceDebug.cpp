@@ -1,15 +1,15 @@
 /* Copyright (c) 2013 Scott Lembcke and Howling Moon Software
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,10 +28,10 @@ cpSpaceDebugDrawShape(cpShape *shape, cpSpaceDebugDrawOptions *options)
 {
 	cpBody *body = shape->body;
 	cpDataPointer data = options->data;
-	
+
 	cpSpaceDebugColor outline_color = options->shapeOutlineColor;
 	cpSpaceDebugColor fill_color = options->colorForShape(shape, data);
-	
+
 	switch(shape->klass->type){
 		case CP_CIRCLE_SHAPE: {
 			cpCircleShape *circle = (cpCircleShape *)shape;
@@ -45,11 +45,11 @@ cpSpaceDebugDrawShape(cpShape *shape, cpSpaceDebugDrawOptions *options)
 		}
 		case CP_POLY_SHAPE: {
 			cpPolyShape *poly = (cpPolyShape *)shape;
-			
+
 			int count = poly->count;
 			struct cpSplittingPlane *planes = poly->planes;
 			cpVect *verts = (cpVect *)alloca(count*sizeof(cpVect));
-			
+
 			for(int i=0; i<count; i++) verts[i] = planes[i].v0;
 			options->drawPolygon(count, verts, poly->r, outline_color, fill_color, data);
 			break;
@@ -82,31 +82,31 @@ cpSpaceDebugDrawConstraint(cpConstraint *constraint, cpSpaceDebugDrawOptions *op
 {
 	cpDataPointer data = options->data;
 	cpSpaceDebugColor color = options->constraintColor;
-	
+
 	cpBody *body_a = constraint->a;
 	cpBody *body_b = constraint->b;
 
 	if(cpConstraintIsPinJoint(constraint)){
 		cpPinJoint *joint = (cpPinJoint *)constraint;
-		
+
 		cpVect a = cpTransformPoint(body_a->transform, joint->anchorA);
 		cpVect b = cpTransformPoint(body_b->transform, joint->anchorB);
-		
+
 		options->drawDot(5, a, color, data);
 		options->drawDot(5, b, color, data);
 		options->drawSegment(a, b, color, data);
 	} else if(cpConstraintIsSlideJoint(constraint)){
 		cpSlideJoint *joint = (cpSlideJoint *)constraint;
-	
+
 		cpVect a = cpTransformPoint(body_a->transform, joint->anchorA);
 		cpVect b = cpTransformPoint(body_b->transform, joint->anchorB);
-		
+
 		options->drawDot(5, a, color, data);
 		options->drawDot(5, b, color, data);
 		options->drawSegment(a, b, color, data);
 	} else if(cpConstraintIsPivotJoint(constraint)){
 		cpPivotJoint *joint = (cpPivotJoint *)constraint;
-	
+
 		cpVect a = cpTransformPoint(body_a->transform, joint->anchorA);
 		cpVect b = cpTransformPoint(body_b->transform, joint->anchorB);
 
@@ -114,21 +114,21 @@ cpSpaceDebugDrawConstraint(cpConstraint *constraint, cpSpaceDebugDrawOptions *op
 		options->drawDot(5, b, color, data);
 	} else if(cpConstraintIsGrooveJoint(constraint)){
 		cpGrooveJoint *joint = (cpGrooveJoint *)constraint;
-	
+
 		cpVect a = cpTransformPoint(body_a->transform, joint->grv_a);
 		cpVect b = cpTransformPoint(body_a->transform, joint->grv_b);
 		cpVect c = cpTransformPoint(body_b->transform, joint->anchorB);
-		
+
 		options->drawDot(5, c, color, data);
 		options->drawSegment(a, b, color, data);
 	} else if(cpConstraintIsDampedSpring(constraint)){
 		cpDampedSpring *spring = (cpDampedSpring *)constraint;
 		cpDataPointer data = options->data;
 		cpSpaceDebugColor color = options->constraintColor;
-		
+
 		cpVect a = cpTransformPoint(body_a->transform, spring->anchorA);
 		cpVect b = cpTransformPoint(body_b->transform, spring->anchorB);
-		
+
 		options->drawDot(5, a, color, data);
 		options->drawDot(5, b, color, data);
 
@@ -136,16 +136,16 @@ cpSpaceDebugDrawConstraint(cpConstraint *constraint, cpSpaceDebugDrawOptions *op
 		cpFloat cos = delta.x;
 		cpFloat sin = delta.y;
 		cpFloat s = 1.0f/cpvlength(delta);
-		
+
 		cpVect r1 = cpv(cos, -sin*s);
 		cpVect r2 = cpv(sin,  cos*s);
-		
+
 		cpVect *verts = (cpVect *)alloca(spring_count*sizeof(cpVect));
 		for(int i=0; i<spring_count; i++){
 			cpVect v = spring_verts[i];
 			verts[i] = cpv(cpvdot(v, r1) + a.x, cpvdot(v, r2) + a.y);
 		}
-		
+
 		for(int i=0; i<spring_count-1; i++){
 			options->drawSegment(verts[i], verts[i + 1], color, data);
 		}
@@ -158,25 +158,25 @@ cpSpaceDebugDraw(cpSpace *space, cpSpaceDebugDrawOptions *options)
 	if(options->flags & CP_SPACE_DEBUG_DRAW_SHAPES){
 		cpSpaceEachShape(space, (cpSpaceShapeIteratorFunc)cpSpaceDebugDrawShape, options);
 	}
-	
+
 	if(options->flags & CP_SPACE_DEBUG_DRAW_CONSTRAINTS){
 		cpSpaceEachConstraint(space, (cpSpaceConstraintIteratorFunc)cpSpaceDebugDrawConstraint, options);
 	}
-	
+
 	if(options->flags & CP_SPACE_DEBUG_DRAW_COLLISION_POINTS){
 		cpArray *arbiters = space->arbiters;
 		cpSpaceDebugColor color = options->collisionPointColor;
 		cpSpaceDebugDrawSegmentImpl draw_seg = options->drawSegment;
 		cpDataPointer data = options->data;
-		
+
 		for(int i=0; i<arbiters->num; i++){
 			cpArbiter *arb = (cpArbiter*)arbiters->arr[i];
 			cpVect n = arb->n;
-			
+
 			for(int j=0; j<arb->count; j++){
 				cpVect p1 = cpvadd(arb->body_a->p, arb->contacts[j].r1);
 				cpVect p2 = cpvadd(arb->body_b->p, arb->contacts[j].r2);
-				
+
 				cpFloat d = 2.0f;
 				cpVect a = cpvadd(p1, cpvmult(n, -d));
 				cpVect b = cpvadd(p2, cpvmult(n,  d));

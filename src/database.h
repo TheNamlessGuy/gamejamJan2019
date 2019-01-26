@@ -11,20 +11,20 @@ template < class resource_loader >
 class database
 {
 private:
-    
+
     using resource_t = typename resource_loader::type;
-    
+
     struct ref_counted
     {
         resource_t* resource;
         uint32_t    counter;
     };
-    
+
     std::unordered_map< resource_t*, std::string > paths;
     std::unordered_map< std::string, ref_counted > resources;
-    
+
 public:
-    
+
     resource_t* add( const std::string& path )
     {
         auto it = resources.find( path );
@@ -40,7 +40,7 @@ public:
             return res;
         }
     }
-    
+
     void remove( resource_t*& resource )
     {
         auto it = paths.find( resource );
@@ -54,7 +54,7 @@ public:
         }
         resource = nullptr;
     }
-    
+
     void clear()
     {
         for ( auto kvp : paths ) {
@@ -63,7 +63,7 @@ public:
         paths.clear();
         resources.clear();
     }
-    
+
     database() = default;
     ~database() { clear(); }
 };
