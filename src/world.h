@@ -7,17 +7,22 @@
 #include "chipmunk/chipmunk.h"
 
 #define GOOD_ENOUGH 12532
+#define CTPLAYER 0
+#define CTGROUND 1
 
-struct body {
+struct player {
     cpShape* shape;
     cpBody* body;
+    bool standing;
 };
 
 struct world {
     cpSpace* space = nullptr;
 
     array<cpShape*, GOOD_ENOUGH> grounds;
-    array<body, GOOD_ENOUGH> players;
+    array<player, GOOD_ENOUGH> players;
+
+    cpCollisionHandler* pgch;
 
     void destroy() {
         if (!space) {
@@ -35,6 +40,33 @@ struct world {
         cpSpaceFree(space);
     }
 };
+
+unsigned char collisionstart(cpArbiter *arb, struct cpSpace *space, void* data) {
+    world* w = (world*)data;
+    cpShape* player;
+    cpShape* ground;
+    cpArbiterGetShapes(arb, &player, &ground);
+    for (auto& p : w->players) {
+        if (p.shape == player) {
+            p.standing = true;
+            break;
+        }
+    }
+    return 1;
+}
+
+void collisionend(cpArbiter *arb, struct cpSpace *space, cpDataPointer data) {
+    world* w = (world*)data;
+    cpShape* player;
+    cpShape* ground;
+    cpArbiterGetShapes(arb, &player, &ground);
+    for (auto& p : w->players) {
+        if (p.shape == player) {
+            p.standing = false;
+            break;
+        }
+    }
+}
 
 double pdouble(std::string const& properties, std::string const& prop) {
     for (unsigned int i = 0; i < properties.size(); ++i) {
@@ -63,7 +95,8 @@ double pdouble(std::string const& properties, std::string const& prop) {
 
 std::map<std::string, void (*)(std::string const& properties, world& w)> thingloaders = {
     std::make_pair("player", [](std::string const& properties, world& w){
-            body b;
+            player b;
+            b.standing = false;
             cpFloat radius = 12;
             cpFloat mass = 3;
             cpVect pos = cpv(pdouble(properties, "x"), pdouble(properties, "y"));
@@ -71,6 +104,7 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
             b.body = cpSpaceAddBody(w.space, cpBodyNew(mass, moment));
             cpBodySetPosition(b.body, pos);
             b.shape = cpBoxShapeNew(b.body, 32, 32, 1);
+            cpShapeSetCollisionType(b.shape, CTPLAYER);
             cpShapeSetFriction(b.shape, 0.7);
             cpSpaceAddShape(w.space, b.shape);
             w.players.push_back(b);
@@ -79,6 +113,7 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
             cpVect start = cpv(pdouble(properties, "x1"), pdouble(properties, "y1"));
             cpVect end = cpv(pdouble(properties, "x2"), pdouble(properties, "y2"));
             cpShape* s = cpSegmentShapeNew(cpSpaceGetStaticBody(w.space), start, end, 1);
+            cpShapeSetCollisionType(s, CTGROUND);
             cpShapeSetFriction(s, 1);
             cpSpaceAddShape(w.space, s);
             w.grounds.push_back(s);
@@ -88,6 +123,10 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
 void loadworld(world& w, std::string const& filename) {
     w.destroy();
     w.space = cpSpaceNew();
+    w.pgch = cpSpaceAddCollisionHandler(w.space, CTPLAYER, CTGROUND);
+    w.pgch->beginFunc = collisionstart;
+    w.pgch->separateFunc = collisionend;
+    w.pgch->userData = (void*)&w;
     cpSpaceSetGravity(w.space, cpv(0, 200));
     std::ifstream file(filename);
     if (!file.good()) {

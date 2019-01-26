@@ -41,12 +41,6 @@ SDL_Texture* load_or_die(const char* imagefilename) {
 }
 
 void update_application_logic() {
-    /*cpVect pos = cpBodyGetPosition(ballBody);
-    cpVect vel = cpBodyGetVelocity(ballBody);
-    std::cout << "POS: " << pos.x << " " << pos.y << std::endl;
-    std::cout << "VEL: " << vel.x << " " << vel.y << std::endl;
-    std::cout << std::endl;
-    cpSpaceStep(space, 1.0f / 24.0f);*/
     updatew(w);
 }
 
