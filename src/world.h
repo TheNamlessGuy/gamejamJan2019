@@ -3,32 +3,36 @@
 #include <fstream>
 #include <map>
 #include "util/array.h"
+#include "chipmunk/chipmunk.h"
 
-#define GOOD_ENOUGH 25699
+#define GOOD_ENOUGH 12532
 
-enum thing_type {
-    TTPLAYER,
-    TTGROUND
-};
-
-struct thing {
-    thing_type type;
-    union {
-        struct {
-            double x;
-            double y;
-        } player;
-        struct {
-            double x1;
-            double y1;
-            double x2;
-            double y2;
-        } ground;
-    };
+struct body {
+    cpShape* shape;
+    cpBody* body;
 };
 
 struct world {
-    array<thing, GOOD_ENOUGH> things;
+    cpSpace* space = nullptr;
+
+    array<cpShape*, GOOD_ENOUGH> grounds;
+    array<body, GOOD_ENOUGH> players;
+
+    void destroy() {
+        if (!space) {
+            return;
+        }
+        for (auto& ground : grounds) {
+            cpShapeFree(ground);
+        }
+        for (auto& player : players) {
+            cpShapeFree(player.shape);
+            cpBodyFree(player.body);
+        }
+        grounds.used_size = 0;
+        players.used_size = 0;
+        cpSpaceFree(space);
+    }
 };
 
 double pdouble(std::string const& properties, std::string const& prop) {
@@ -56,27 +60,33 @@ double pdouble(std::string const& properties, std::string const& prop) {
     return 13.37;
 }
 
-std::map<std::string, thing (*)(std::string const& properties)> thingloaders = {
-    std::make_pair("player", [](std::string const& properties){
-            thing p;
-            p.type = TTPLAYER;
-            p.player.x = pdouble(properties, "x");
-            p.player.y = pdouble(properties, "y");
-            return p;
+std::map<std::string, void (*)(std::string const& properties, world& w)> thingloaders = {
+    std::make_pair("player", [](std::string const& properties, world& w){
+            body b;
+            cpFloat radius = 6;
+            cpFloat mass = 3;
+            cpVect pos = cpv(pdouble(properties, "x"), pdouble(properties, "y"));
+            cpFloat moment = cpMomentForCircle(mass, 0, radius, cpv(0,0));
+            b.body = cpSpaceAddBody(w.space, cpBodyNew(mass, moment));
+            cpBodySetPosition(b.body, pos);
+            b.shape = cpSpaceAddShape(w.space, cpCircleShapeNew(b.body, radius, cpv(0,0)));
+            cpShapeSetFriction(b.shape, 0.7);
+            w.players.push_back(b);
         }),
-    std::make_pair("ground", [](std::string const& properties){
-            thing g;
-            g.type = TTGROUND;
-            g.ground.x1 = pdouble(properties, "x1");
-            g.ground.y1 = pdouble(properties, "y1");
-            g.ground.x2 = pdouble(properties, "x2");
-            g.ground.y2 = pdouble(properties, "y2");
-            return g;
+    std::make_pair("ground", [](std::string const& properties, world& w){
+            cpVect start = cpv(pdouble(properties, "x1"), pdouble(properties, "y1"));
+            cpVect end = cpv(pdouble(properties, "x2"), pdouble(properties, "y2"));
+            cpShape* s = cpSegmentShapeNew(cpSpaceGetStaticBody(w.space), start, end, 5);
+            cpShapeSetFriction(s, 1);
+            cpSpaceAddShape(w.space, s);
+            w.grounds.push_back(s);
         }),
 };
 
 void loadworld(world& w, std::string const& filename) {
-    w.things.used_size = 0; // clear that fucker
+    w.destroy();
+    w.space = cpSpaceNew();
+    cpSpaceSetGravity(w.space, cpv(0, 200));
     std::ifstream file(filename);
     if (!file.good()) {
         crash("MAKE FILE GOOD AGAIN    ");
@@ -91,6 +101,14 @@ void loadworld(world& w, std::string const& filename) {
         }
         std::string type = line.substr(0, i);
         std::string propss = line.substr(i + 1);
-        w.things.push_back(thingloaders[type](propss));
+        thingloaders[type](propss, w);
     }
+}
+
+void destroytheworld(world& w) {
+    w.destroy();
+}
+
+void updatew(world& w) {
+    cpSpaceStep(w.space, 1.0f / MAXIMUM_PERCIEVABLE_FRAMERATE);
 }
