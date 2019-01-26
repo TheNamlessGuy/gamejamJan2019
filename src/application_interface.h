@@ -1,14 +1,13 @@
 #pragma once
 
-#define DUMMY {}
-
 #include <iostream>
 #include "chipmunk/chipmunk.h"
+#include "world.h"
 
 SDL_Texture* example = nullptr;
-SDL_Rect examplerect = {32, 32, 32, 32};
 
 // World stuff
+world w;
 cpSpace* space = nullptr;
 cpVect gravity = cpv(0, -100);
 
@@ -58,8 +57,34 @@ void update_application_logic() {
 }
 
 void draw_application_view() {
-    drawt(example, &examplerect);
-    lineRGBA(engine_data->sdl2_data.renderer.handle, 128, 128, 365, 256, 255, 0, 0, 255);
+    for (auto& thing : w.things) {
+        switch (thing.type) {
+            case TTPLAYER: {
+                SDL_Rect f;
+                f.x = thing.player.x;
+                f.y = thing.player.y;
+                f.w = 32;
+                f.h = 32;
+                drawt(example, &f);
+                break;
+            }
+            case TTGROUND: {
+                lineRGBA(engine_data->sdl2_data.renderer.handle,
+                         thing.ground.x1,
+                         thing.ground.y1,
+                         thing.ground.x2,
+                         thing.ground.y2,
+                         255,
+                         0,
+                         0,
+                         255);
+                break;
+            }
+            default: {
+                crash("I AINT DRAWING SHIT");
+            }
+        }
+    }
 }
 
 void init_application() {
@@ -85,6 +110,8 @@ void init_application() {
 
     ballShape = cpSpaceAddShape(space, cpCircleShapeNew(ballBody, radius, cpv(0,0)));
     cpShapeSetFriction(ballShape, 0.7);
+
+    loadworld(w, "res/maps/example.csv");
 }
 
 void close_application() {
