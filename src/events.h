@@ -88,8 +88,21 @@ void handle_window_event( SDL_WindowEvent* e )
     }
 }
 
+bool LEFT = false;
+bool RIGHT = false;
+
 void handle_key_press( SDL_KeyboardEvent* e )
 {
+  switch (e->keysym.sym) {
+    case SDLK_LEFT:
+      LEFT = (e->state == SDL_PRESSED);
+      break;
+    case SDLK_RIGHT:
+      RIGHT = (e->state = SDL_PRESSED);
+      break;
+    default:
+      break;
+  }
     // e->keysym.scancode or sym
     /*
     e->state;
