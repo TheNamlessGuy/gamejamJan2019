@@ -6,7 +6,7 @@
 """
 
 compiler            = "clang++"
-misc_flags          = [ "-std=c++11", "-pthread", "-lm", "-fno-rtti", "-fno-exceptions" ]
+misc_flags          = [ "-std=c++11", "-pthread", "-fno-rtti", "-fno-exceptions" ]
 opt_flags           = [ "-Ofast", "-ffast-math", "-march=native", "-ftree-vectorize", "-flto", "-fassociative-math", "-msse4.2" ]
 src_path            = "libsrc"
 compile_exts        = [ ".cpp", ".c", ".cc" ] 
