@@ -188,6 +188,9 @@ void updatew(world& w) {
 }
 
 void drawworld_debug(world& w) {
+    if (!w.players.used_size) {
+        crash("ONE PLAYER PLZ OMG");
+    }
     for (auto& player : w.players) {
         cpVect pos = cpBodyGetPosition(player.body);
         cpFloat radius = cpPolyShapeGetRadius(player.shape);
@@ -211,10 +214,10 @@ void drawworld_debug(world& w) {
             double toy = tor * sin(t + tot);
 
             thickLineRGBA(engine_data->sdl2_data.renderer.handle,
-                          pos.x + fromx,
-                          pos.y + fromy,
-                          pos.x + tox,
-                          pos.y + toy,
+                          320/*pos.x*/ + fromx,
+                          240/*pos.y*/ + fromy,
+                          320/*pos.x*/ + tox,
+                          240/*pos.y*/ + toy,
                           radius,
                           255,
                           255,
@@ -222,14 +225,15 @@ void drawworld_debug(world& w) {
                           255);
         }
     }
+    cpVect playerpos = cpBodyGetPosition(w.players.data[0].body);
     for (auto& ground : w.grounds) {
         cpVect a = cpSegmentShapeGetA(ground);
         cpVect b = cpSegmentShapeGetB(ground);
         thickLineRGBA(engine_data->sdl2_data.renderer.handle,
-                      a.x,
-                      a.y,
-                      b.x,
-                      b.y,
+                      a.x - playerpos.x + 320,
+                      a.y - playerpos.y + 240,
+                      b.x - playerpos.x + 320,
+                      b.y - playerpos.y + 240,
                       1,
                       0,
                       255,
