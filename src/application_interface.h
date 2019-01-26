@@ -21,6 +21,34 @@ void drawt(SDL_Texture* t, SDL_Rect* r) {
     SDL_RenderCopy(engine_data->sdl2_data.renderer.handle, t, nullptr, r);
 }
 
+#include "database.h"
+
+struct ImageLoader {
+    using type = SDL_Texture;
+
+    type* load( const std::string& s ) {
+        SDL_Texture* t = IMG_LoadTexture( engine_data->sdl2_data.renderer.handle, s.c_str() );
+        if ( t == nullptr ) {
+            std::string msg = std::string( "OMGFUCKYOU CANNOT LOAD THOSE FINE TAPESTRIES: " ) + s;
+            crash( msg.c_str() ); // crash kill and destroy
+        }
+        return t;
+    }
+    
+    void unload( type* t ) {
+        SDL_DestroyTexture(t);
+    }
+    
+    uint64_t size() const { return 0; } // unused for now...
+};
+
+database<ImageLoader> imdb;
+
+SDL_Texture* load_or_die(const char* imagefilename) {
+    return imdb.add( std::string( imagefilename ) );
+}
+
+/*
 SDL_Texture* load_or_die(const char* imagefilename) {
     SDL_Surface* surf = IMG_Load(imagefilename);
     char msg[1025]; // big enough
@@ -36,6 +64,7 @@ SDL_Texture* load_or_die(const char* imagefilename) {
     }
     return tex;
 }
+*/
 
 void update_application_logic() {
     cpVect pos = cpBodyGetPosition(ballBody);
