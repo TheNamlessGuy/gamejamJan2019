@@ -48,24 +48,6 @@ SDL_Texture* load_or_die(const char* imagefilename) {
     return imdb.add( std::string( imagefilename ) );
 }
 
-/*
-SDL_Texture* load_or_die(const char* imagefilename) {
-    SDL_Surface* surf = IMG_Load(imagefilename);
-    char msg[1025]; // big enough
-    if (!surf) {
-        sprintf(msg, "OMGFUCKYOU CANNOT LOAD THOSE FINE TAPESTRIES: %s", imagefilename);
-        crash(msg); // crash kill and destroy
-    }
-    SDL_Texture* tex = SDL_CreateTextureFromSurface(engine_data->sdl2_data.renderer.handle, surf);
-    SDL_FreeSurface(surf);
-    if (!tex) {
-        sprintf(msg, "NO TEXTURES NO LIFE: %s", imagefilename);
-        crash(msg);
-    }
-    return tex;
-}
-*/
-
 void update_application_logic() {
     cpVect pos = cpBodyGetPosition(ballBody);
     cpVect vel = cpBodyGetVelocity(ballBody);
