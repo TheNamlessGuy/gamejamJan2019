@@ -35,12 +35,3 @@ void crash( const char* msg = "-" )
                              msg, nullptr );
     exit( -1 );
 }
-
-#include <chrono>
-
-#define BENCHMARK                                                               \
-start = std::chrono::high_resolution_clock::now();                              \
-for ( int i = 1; i--; printf( "%f\n",                                           \
-( std::chrono::high_resolution_clock::now() - start ).count() / 1e9 ) )
-
-std::chrono::steady_clock::time_point start;
