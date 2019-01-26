@@ -2,7 +2,8 @@
 
 void EMPTY_FUNCTION(){}
 
-#define PROGRAM_NAME "game"
+#define PROGRAM_NAME "aa"
+#define MAXIMUM_PERCIEVABLE_FRAMERATE (24)
 
 template <class T>
 auto dereference_anonymous_type( T const * const x ) { return *x; }
