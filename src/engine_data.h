@@ -30,7 +30,7 @@ struct
                                                     | SDL_RENDERER_PRESENTVSYNC
                                                     | SDL_RENDERER_ACCELERATED;
             bool            recalc_size         = true;
-            int             target_frame_rate   = 24;
+            int             target_frame_rate   = MAXIMUM_PERCIEVABLE_FRAMERATE;
         } renderer;
 
     } sdl2_data;
@@ -49,10 +49,11 @@ void init_engine_data( int argc, const char* argv[] )
 
     // get display refresh-rate:
     SDL_DisplayMode mode;
-    SDL_GetCurrentDisplayMode(
-        SDL_GetWindowDisplayIndex( engine_data->sdl2_data.window.handle ), &mode );
-    // engine_data->sdl2_data.renderer.target_frame_rate = mode.refresh_rate;
-
+    SDL_GetCurrentDisplayMode( 0, &mode );
+    if ( 30 <= mode.refresh_rate and mode.refresh_rate <= 1000 ) {
+        engine_data->sdl2_data.renderer.target_frame_rate = MAXIMUM_PERCIEVABLE_FRAMERATE;
+    }
+    
     // TODO:
     // - read config file   (optional)
     // - parse arguments    (optional)
