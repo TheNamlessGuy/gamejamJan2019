@@ -3,9 +3,19 @@
 #define DUMMY {}
 
 #include <iostream>
+#include "chipmunk/chipmunk.h"
 
 SDL_Texture* example = nullptr;
 SDL_Rect examplerect = {32, 32, 32, 32};
+
+// World stuff
+cpSpace* space = nullptr;
+cpVect gravity = cpv(0, -100);
+
+// World stuff stuff
+cpShape* ground = nullptr;
+cpBody* ballBody = nullptr;
+cpShape* ballShape = nullptr;
 
 void drawt(SDL_Texture* t, SDL_Rect* r) {
     SDL_RenderCopy(engine_data->sdl2_data.renderer.handle, t, nullptr, r);
@@ -28,7 +38,12 @@ SDL_Texture* load_or_die(const char* imagefilename) {
 }
 
 void update_application_logic() {
-
+    cpVect pos = cpBodyGetPosition(ballBody);
+    cpVect vel = cpBodyGetVelocity(ballBody);
+    std::cout << "POS: " << pos.x << " " << pos.y << std::endl;
+    std::cout << "VEL: " << vel.x << " " << vel.y << std::endl;
+    std::cout << std::endl;
+    cpSpaceStep(space, 1.0f / 24.0f);
 }
 
 void draw_application_view() {
@@ -37,8 +52,33 @@ void draw_application_view() {
 
 void init_application() {
     example = load_or_die("res/image/example.jpg");
+
+    // literal copy-pasta from docs https://chipmunk-physics.net/release/ChipmunkLatest-Docs/
+    space = cpSpaceNew();
+    cpSpaceSetGravity(space, gravity);
+    ground = cpSegmentShapeNew(cpSpaceGetStaticBody(space), cpv(-20, 5), cpv(20, -5), 0);
+    cpShapeSetFriction(ground, 1);
+    cpSpaceAddShape(space, ground);
+
+
+
+
+    cpFloat radius = 5;
+    cpFloat mass = 1;
+
+    cpFloat moment = cpMomentForCircle(mass, 0, radius, cpv(0,0));
+
+    ballBody = cpSpaceAddBody(space, cpBodyNew(mass, moment));
+    cpBodySetPosition(ballBody, cpv(0, 15));
+
+    ballShape = cpSpaceAddShape(space, cpCircleShapeNew(ballBody, radius, cpv(0,0)));
+    cpShapeSetFriction(ballShape, 0.7);
 }
 
 void close_application() {
+    cpShapeFree(ballShape);
+    cpBodyFree(ballBody);
+    cpShapeFree(ground);
+    cpSpaceFree(space);
     SDL_DestroyTexture(example);
 }
