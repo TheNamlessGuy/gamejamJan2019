@@ -5,8 +5,6 @@
 #include "frameworks.h"
 #include "database.h"
 
-#include <vector>
-
 struct
 {
     bool quit_requested = false;
