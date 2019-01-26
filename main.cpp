@@ -14,8 +14,8 @@ int main( int argc, const char* argv[] )
     while ( not engine_data->quit_requested )
     {
         handle_sys_events();
-    //     update_application_logic();
-    //     render< draw_application_view >();
+        update_application_logic();
+        render< draw_application_view >();
         time_sync();
     }
 
