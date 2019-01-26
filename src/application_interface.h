@@ -51,29 +51,7 @@ void update_application_logic() {
 }
 
 void draw_application_view() {
-    for (auto& player : w.players) {
-        cpVect pos = cpBodyGetPosition(player.body);
-        SDL_Rect f;
-        f.x = pos.x;
-        f.y = pos.y;
-        f.w = 32;
-        f.h = 32;
-        drawt(example, &f);
-    }
-    for (auto& ground : w.grounds) {
-        cpVect a = cpSegmentShapeGetA(ground);
-        cpVect b = cpSegmentShapeGetB(ground);
-        thickLineRGBA(engine_data->sdl2_data.renderer.handle,
-                      a.x,
-                      a.y,
-                      b.x,
-                      b.y,
-                      5,
-                      255,
-                      0,
-                      0,
-                      255);
-    }
+    drawworld_debug(w);
 }
 
 void init_application() {

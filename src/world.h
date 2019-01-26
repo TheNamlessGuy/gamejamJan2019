@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <map>
+#include <cmath>
 #include "util/array.h"
 #include "chipmunk/chipmunk.h"
 
@@ -63,20 +64,21 @@ double pdouble(std::string const& properties, std::string const& prop) {
 std::map<std::string, void (*)(std::string const& properties, world& w)> thingloaders = {
     std::make_pair("player", [](std::string const& properties, world& w){
             body b;
-            cpFloat radius = 6;
+            cpFloat radius = 12;
             cpFloat mass = 3;
             cpVect pos = cpv(pdouble(properties, "x"), pdouble(properties, "y"));
             cpFloat moment = cpMomentForCircle(mass, 0, radius, cpv(0,0));
             b.body = cpSpaceAddBody(w.space, cpBodyNew(mass, moment));
             cpBodySetPosition(b.body, pos);
-            b.shape = cpSpaceAddShape(w.space, cpCircleShapeNew(b.body, radius, cpv(0,0)));
+            b.shape = cpBoxShapeNew(b.body, 32, 32, 1);
             cpShapeSetFriction(b.shape, 0.7);
+            cpSpaceAddShape(w.space, b.shape);
             w.players.push_back(b);
         }),
     std::make_pair("ground", [](std::string const& properties, world& w){
             cpVect start = cpv(pdouble(properties, "x1"), pdouble(properties, "y1"));
             cpVect end = cpv(pdouble(properties, "x2"), pdouble(properties, "y2"));
-            cpShape* s = cpSegmentShapeNew(cpSpaceGetStaticBody(w.space), start, end, 5);
+            cpShape* s = cpSegmentShapeNew(cpSpaceGetStaticBody(w.space), start, end, 1);
             cpShapeSetFriction(s, 1);
             cpSpaceAddShape(w.space, s);
             w.grounds.push_back(s);
@@ -111,4 +113,55 @@ void destroytheworld(world& w) {
 
 void updatew(world& w) {
     cpSpaceStep(w.space, 1.0f / MAXIMUM_PERCIEVABLE_FRAMERATE);
+}
+
+void drawworld_debug(world& w) {
+    for (auto& player : w.players) {
+        cpVect pos = cpBodyGetPosition(player.body);
+        cpFloat radius = cpPolyShapeGetRadius(player.shape);
+        cpVect rot = cpBodyGetRotation(player.body);
+        double t = atan2(rot.y, rot.x);
+        for (int i = 1; i <= cpPolyShapeGetCount(player.shape); ++i) {
+            cpVect from = cpPolyShapeGetVert(player.shape, i - 1);
+            int j = i;
+            if (j == cpPolyShapeGetCount(player.shape)) {
+                j = 0;
+            }
+            cpVect to = cpPolyShapeGetVert(player.shape, j);
+            double fromt = atan2(from.y, from.x);
+            double fromr = sqrt(from.y*from.y + from.x*from.x);
+            double tot = atan2(to.y, to.x);
+            double tor = sqrt(to.y*to.y + to.x*to.x);
+
+            double fromx = fromr * cos(t + fromt);
+            double fromy = fromr * sin(t + fromt);
+            double tox = tor * cos(t + tot);
+            double toy = tor * sin(t + tot);
+
+            thickLineRGBA(engine_data->sdl2_data.renderer.handle,
+                          pos.x + fromx,
+                          pos.y + fromy,
+                          pos.x + tox,
+                          pos.y + toy,
+                          radius,
+                          255,
+                          255,
+                          255,
+                          255);
+        }
+    }
+    for (auto& ground : w.grounds) {
+        cpVect a = cpSegmentShapeGetA(ground);
+        cpVect b = cpSegmentShapeGetB(ground);
+        thickLineRGBA(engine_data->sdl2_data.renderer.handle,
+                      a.x,
+                      a.y,
+                      b.x,
+                      b.y,
+                      1,
+                      0,
+                      255,
+                      0,
+                      255);
+    }
 }
