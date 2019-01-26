@@ -16,11 +16,17 @@ struct player {
     bool standing;
 };
 
+struct house {
+    cpShape* shape;
+    cpBody* body;
+};
+
 struct world {
     cpSpace* space = nullptr;
 
     array<cpShape*, GOOD_ENOUGH> grounds;
     array<player, GOOD_ENOUGH> players;
+    array<house, GOOD_ENOUGH> houses;
 
     cpCollisionHandler* pgch;
 
@@ -35,8 +41,13 @@ struct world {
             cpShapeFree(player.shape);
             cpBodyFree(player.body);
         }
+        for (auto& house : houses) {
+            cpShapeFree(house.shape);
+            cpBodyFree(house.body);
+        }
         grounds.used_size = 0;
         players.used_size = 0;
+        houses.used_size = 0;
         cpSpaceFree(space);
     }
 };
@@ -108,6 +119,20 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
             cpShapeSetFriction(b.shape, 0.7);
             cpSpaceAddShape(w.space, b.shape);
             w.players.push_back(b);
+        }),
+    std::make_pair("house", [](std::string const& properties, world& w){
+            house b;
+            cpFloat radius = 12;
+            cpFloat mass = 3;
+            cpVect pos = cpv(pdouble(properties, "x"), pdouble(properties, "y"));
+            cpFloat moment = cpMomentForCircle(mass, 0, radius, cpv(0,0));
+            b.body = cpSpaceAddBody(w.space, cpBodyNew(mass, moment));
+            cpBodySetPosition(b.body, pos);
+            cpVect vects[5] = {cpv(-20,20),cpv(20,20),cpv(20,-20),cpv(0,-40),cpv(-20,-20)};
+            b.shape = cpPolyShapeNewRaw(b.body, 5, vects, 1);
+            cpShapeSetFriction(b.shape, 0.7);
+            cpSpaceAddShape(w.space, b.shape);
+            w.houses.push_back(b);
         }),
     std::make_pair("ground", [](std::string const& properties, world& w){
             cpVect start = cpv(pdouble(properties, "x1"), pdouble(properties, "y1"));
@@ -214,10 +239,10 @@ void drawworld_debug(world& w) {
             double toy = tor * sin(t + tot);
 
             thickLineRGBA(engine_data->sdl2_data.renderer.handle,
-                          320/*pos.x*/ + fromx,
-                          240/*pos.y*/ + fromy,
-                          320/*pos.x*/ + tox,
-                          240/*pos.y*/ + toy,
+                          320 + fromx,
+                          240 + fromy,
+                          320 + tox,
+                          240 + toy,
                           radius,
                           255,
                           255,
@@ -239,5 +264,39 @@ void drawworld_debug(world& w) {
                       255,
                       0,
                       255);
+    }
+    for (auto& house : w.houses) {
+        cpVect pos = cpBodyGetPosition(house.body);
+        cpFloat radius = cpPolyShapeGetRadius(house.shape);
+        cpVect rot = cpBodyGetRotation(house.body);
+        double t = atan2(rot.y, rot.x);
+        for (int i = 1; i <= cpPolyShapeGetCount(house.shape); ++i) {
+            cpVect from = cpPolyShapeGetVert(house.shape, i - 1);
+            int j = i;
+            if (j == cpPolyShapeGetCount(house.shape)) {
+                j = 0;
+            }
+            cpVect to = cpPolyShapeGetVert(house.shape, j);
+            double fromt = atan2(from.y, from.x);
+            double fromr = sqrt(from.y*from.y + from.x*from.x);
+            double tot = atan2(to.y, to.x);
+            double tor = sqrt(to.y*to.y + to.x*to.x);
+
+            double fromx = fromr * cos(t + fromt);
+            double fromy = fromr * sin(t + fromt);
+            double tox = tor * cos(t + tot);
+            double toy = tor * sin(t + tot);
+
+            thickLineRGBA(engine_data->sdl2_data.renderer.handle,
+                          pos.x + fromx - playerpos.x + 320,
+                          pos.y + fromy - playerpos.y + 240,
+                          pos.x + tox - playerpos.x + 320,
+                          pos.y + toy - playerpos.y + 240,
+                          radius,
+                          255,
+                          255,
+                          255,
+                          255);
+        }
     }
 }
