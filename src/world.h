@@ -134,19 +134,16 @@ void loadworld(world& w, std::string const& filename) {
     }
     std::string line;
     while (std::getline(file, line)) {
-      int i = 0;
+        int i = 0;
         for (; i < line.size(); ++i) {
             if (line[i] == ' ') {
                 break;
             }
+        }
         std::string type = line.substr(0, i);
         std::string propss = line.substr(i + 1);
         thingloaders[type](propss, w);
     }
-    std::string type = line.substr(0, i);
-    std::string propss = line.substr(i + 1);
-    thingloaders[type](propss, w);
-  }
 }
 
 void destroytheworld(world& w) {

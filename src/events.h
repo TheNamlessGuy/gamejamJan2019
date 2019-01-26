@@ -33,37 +33,37 @@ int SDL2_event_filter_function( void*, SDL_Event* e )
         case SDL_QUIT:
             engine_data->quit_requested = true;
             break;
-        
+
         case SDL_WINDOWEVENT:
             handle_window_event( &( e->window ) );
             break;
-            
+
         case SDL_KEYUP:
         case SDL_KEYDOWN:
             handle_key_press( &( e->key ) );
             break;
-            
+
         case SDL_MOUSEMOTION:
              handle_mouse_motion( &( e->motion ) );
             break;
-            
+
         case SDL_MOUSEBUTTONUP:
         case SDL_MOUSEBUTTONDOWN:
             handle_mouse_button_press( &( e->button ) );
             break;
-            
+
         case SDL_MOUSEWHEEL:
             handle_mouse_wheel_motion( &( e->wheel ) );
             break;
-        
+
         case SDL_APP_LOWMEMORY:         crash( "OS is out of memory." );                break;
         case SDL_APP_TERMINATING:       crash( "'" PROGRAM_NAME "' was terminated." );  break;
         case SDL_RENDER_DEVICE_RESET:   crash( "render device was reset." );            break;
         case SDL_RENDER_TARGETS_RESET:  crash( "render targets were reset." );          break;
-        
+
         default: return 1; // unhandled events can be passed on for now...
     }
-    
+
     return 0; // no events are ever passed to the SDL event queue
 }
 
@@ -78,11 +78,11 @@ void handle_window_event( SDL_WindowEvent* e )
         case SDL_WINDOWEVENT_MAXIMIZED:
             engine_data->sdl2_data.renderer.recalc_size = true;
             break;
-            
+
         case SDL_WINDOWEVENT_CLOSE:
             engine_data->quit_requested = true;
             break;
-            
+
         default:
             break;
     }
@@ -98,7 +98,7 @@ void handle_key_press( SDL_KeyboardEvent* e )
       LEFT = (e->state == SDL_PRESSED);
       break;
     case SDLK_RIGHT:
-      RIGHT = (e->state = SDL_PRESSED);
+      RIGHT = (e->state == SDL_PRESSED);
       break;
     default:
       break;
@@ -113,7 +113,7 @@ void handle_key_press( SDL_KeyboardEvent* e )
 
 void handle_mouse_motion( SDL_MouseMotionEvent* e )
 {
-    
+
 }
 
 void handle_mouse_button_press( SDL_MouseButtonEvent* e )
@@ -135,4 +135,3 @@ void handle_mouse_wheel_motion( SDL_MouseWheelEvent* e )
     e->direction;
     */
 }
-
