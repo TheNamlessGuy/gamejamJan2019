@@ -334,19 +334,20 @@ void updatew(world& w) {
             const cpVect& vec = cpBodyGetVelocity(annoying_friend.body);
             cpVect impulse = cpv(0, 0);
             impulse.x = vec.x;
-            impulse.y = vec.y - 120;
+            impulse.y = vec.y - 150;
             cpBodySetVelocity(annoying_friend.body, impulse);
         }
         if (!annoying_friend.anothercounter) {
+            melon& m = w.melons[0];
             annoying_friend.anothercounter = (rand() % 130) + 1;
             const cpVect& vec = cpBodyGetVelocity(annoying_friend.body);
             cpVect impulse = cpv(0, 0);
             unsigned int d = rand() % 2;
             if (d) {
-                impulse.x = vec.x - 100;
+                impulse.x = vec.x - 120;
                 impulse.y = vec.y - 30;
             } else {
-                impulse.x = vec.x + 100;
+                impulse.x = vec.x + 120;
                 impulse.y = vec.y - 30;
             }
             cpBodySetVelocity(annoying_friend.body, impulse);
