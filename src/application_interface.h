@@ -4,7 +4,8 @@
 #include "chipmunk/chipmunk.h"
 #include "world.h"
 
-SDL_Texture* example = nullptr;
+SDL_Rect markus_pos = {304, 226, 32, 32};
+SDL_Texture* markus = nullptr;
 SDL_Texture* heads[3] = {nullptr, nullptr, nullptr};
 
 // World stuff
@@ -71,10 +72,11 @@ void draw_application_view() {
             c = 0;
         }
     }
+    drawt(markus, &markus_pos);
 }
 
 void init_application() {
-    example = load_or_die("res/image/example.jpg");
+    markus = load_or_die("res/image/markus/head.png");
     heads[0] = load_or_die("res/image/people/head1.png");
     heads[1] = load_or_die("res/image/people/head2.png");
     heads[2] = load_or_die("res/image/people/head3.png");
@@ -83,7 +85,7 @@ void init_application() {
 
 void close_application() {
     destroytheworld(w);
-    SDL_DestroyTexture(example);
+    SDL_DestroyTexture(markus);
     SDL_DestroyTexture(heads[0]);
     SDL_DestroyTexture(heads[1]);
     SDL_DestroyTexture(heads[2]);

@@ -221,7 +221,8 @@ void updatew(world& w) {
                 cpBodySetVelocity(player.body, impulse);
             }
         }
-    } else if (UP) {
+    }
+    if (UP) {
         for (auto& player : w.players) {
             if (player.standing) {
                 const cpVect& vec = cpBodyGetVelocity(player.body);
