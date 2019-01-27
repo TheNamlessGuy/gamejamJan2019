@@ -44,7 +44,7 @@ int SDL2_event_filter_function( void*, SDL_Event* e )
             break;
 
         case SDL_MOUSEMOTION:
-             handle_mouse_motion( &( e->motion ) );
+            handle_mouse_motion( &( e->motion ) );
             break;
 
         case SDL_MOUSEBUTTONUP:
@@ -92,26 +92,31 @@ bool LEFT = false;
 bool RIGHT = false;
 bool UP = false;
 
+bool RESET = false;
+
 void handle_key_press( SDL_KeyboardEvent* e )
 {
-  switch (e->keysym.sym) {
-    case SDLK_LEFT:
-      LEFT = (e->state == SDL_PRESSED);
-      break;
-    case SDLK_RIGHT:
-      RIGHT = (e->state == SDL_PRESSED);
-      break;
-      case SDLK_UP:
-          UP = (e->state == SDL_PRESSED);
-          break;
-    default:
-      break;
-  }
+    switch (e->keysym.sym) {
+        case SDLK_LEFT:
+            LEFT = (e->state == SDL_PRESSED);
+            break;
+        case SDLK_RIGHT:
+            RIGHT = (e->state == SDL_PRESSED);
+            break;
+        case SDLK_UP:
+            UP = (e->state == SDL_PRESSED);
+            break;
+        case SDLK_r:
+            RESET = (e->state == SDL_PRESSED);
+            break;
+        default:
+            break;
+    }
     // e->keysym.scancode or sym
     /*
-    e->state;
-    e->repeat;
-    e->keysym.mod;
+      e->state;
+      e->repeat;
+      e->keysym.mod;
     */
 }
 
@@ -123,19 +128,19 @@ void handle_mouse_motion( SDL_MouseMotionEvent* e )
 void handle_mouse_button_press( SDL_MouseButtonEvent* e )
 {
     /*
-    e->clicks;
-    e->state;
-    e->button;
-    e->x;
-    e->y;
+      e->clicks;
+      e->state;
+      e->button;
+      e->x;
+      e->y;
     */
 }
 
 void handle_mouse_wheel_motion( SDL_MouseWheelEvent* e )
 {
     /*
-    e->x;
-    e->y;
-    e->direction;
+      e->x;
+      e->y;
+      e->direction;
     */
 }

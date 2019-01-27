@@ -233,6 +233,15 @@ void updatew(world& w) {
             }
         }
     }
+    if (RESET) {
+        RESET = false;
+        for (auto& player : w.players) {
+            cpVect pos = cpBodyGetPosition(player.body);
+            pos.y = 0;
+            cpBodySetPosition(player.body, pos);
+            cpBodySetVelocity(player.body, cpv(0, 0));
+        }
+    }
     cpSpaceStep(w.space, 1.0f / MAXIMUM_PERCIEVABLE_FRAMERATE);
 }
 
