@@ -110,6 +110,7 @@ void handle_key_press( SDL_KeyboardEvent* e )
         case SDLK_r:
             RESET = (e->state == SDL_PRESSED);
             break;
+        case SDLK_DOWN:
         case SDLK_SPACE:
             DASH = (e->state == SDL_PRESSED);
             break;
