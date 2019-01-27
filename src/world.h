@@ -174,6 +174,7 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
             b.body = cpSpaceAddBody(w.space, cpBodyNew(mass, moment));
             cpBodySetPosition(b.body, pos);
             b.shape = cpSpaceAddShape(w.space, cpCircleShapeNew(b.body, radius, cpv(0,0)));
+            cpShapeSetCollisionType(b.shape, CTGROUND);
             cpShapeSetFriction(b.shape, 0.9);
             w.annoying_friends.push_back(b);
         }),
@@ -186,6 +187,7 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
             b.body = cpSpaceAddBody(w.space, cpBodyNew(mass, moment));
             cpBodySetPosition(b.body, pos);
             b.shape = cpSpaceAddShape(w.space, cpCircleShapeNew(b.body, radius, cpv(0,0)));
+            cpShapeSetCollisionType(b.shape, CTGROUND);
             cpShapeSetFriction(b.shape, 0.9);
             w.melons.push_back(b);
         }),
