@@ -7,6 +7,7 @@
 SDL_Rect markus_pos = {304, 226, 32, 32};
 SDL_Texture* markus = nullptr;
 SDL_Texture* heads[3] = {nullptr, nullptr, nullptr};
+SDL_Texture* melone = nullptr;
 
 // World stuff
 world w;
@@ -72,6 +73,20 @@ void draw_application_view() {
             c = 0;
         }
     }
+    for (auto& melon : w.melons) {
+        cpVect pos = cpBodyGetPosition(melon.body);
+        cpVect rot = cpBodyGetRotation(melon.body);
+        double a = atan2(rot.y, rot.x);
+        SDL_Rect r;
+        r.x = pos.x - playerpos.x + 320 - 8;
+        r.y = pos.y - playerpos.y + 240 - 15;
+        r.w = 32;
+        r.h = 32;
+        drawtr(melone, &r, a);
+        if (c > 2) {
+            c = 0;
+        }
+    }
     drawt(markus, &markus_pos);
 }
 
@@ -80,6 +95,7 @@ void init_application() {
     heads[0] = load_or_die("res/image/people/head1.png");
     heads[1] = load_or_die("res/image/people/head2.png");
     heads[2] = load_or_die("res/image/people/head3.png");
+    melone = load_or_die("res/image/melon.png");
     loadworld(w, "res/maps/example.csv");
 }
 
@@ -89,4 +105,5 @@ void close_application() {
     SDL_DestroyTexture(heads[0]);
     SDL_DestroyTexture(heads[1]);
     SDL_DestroyTexture(heads[2]);
+    SDL_DestroyTexture(melone);
 }

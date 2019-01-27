@@ -26,6 +26,11 @@ struct annoying_friend {
     cpBody* body;
 };
 
+struct melon {
+    cpShape* shape;
+    cpBody* body;
+};
+
 struct world {
     cpSpace* space = nullptr;
 
@@ -33,6 +38,7 @@ struct world {
     array<player, GOOD_ENOUGH> players;
     array<house, GOOD_ENOUGH> houses;
     array<annoying_friend, GOOD_ENOUGH> annoying_friends;
+    array<melon, GOOD_ENOUGH> melons;
 
     cpCollisionHandler* pgch;
 
@@ -55,10 +61,15 @@ struct world {
             cpShapeFree(annoying_friend.shape);
             cpBodyFree(annoying_friend.body);
         }
+        for (auto& melon : melons) {
+            cpShapeFree(melon.shape);
+            cpBodyFree(melon.body);
+        }
         grounds.used_size = 0;
         players.used_size = 0;
         houses.used_size = 0;
         annoying_friends.used_size = 0;
+        melons.used_size = 0;
         cpSpaceFree(space);
     }
 };
@@ -165,6 +176,18 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
             b.shape = cpSpaceAddShape(w.space, cpCircleShapeNew(b.body, radius, cpv(0,0)));
             cpShapeSetFriction(b.shape, 0.9);
             w.annoying_friends.push_back(b);
+        }),
+    std::make_pair("melon", [](std::string const& properties, world& w){
+            melon b;
+            cpFloat radius = 20;
+            cpFloat mass = 1;
+            cpVect pos = cpv(pdouble(properties, "x"), pdouble(properties, "y"));
+            cpFloat moment = cpMomentForCircle(mass, 0, radius, cpv(0,0));
+            b.body = cpSpaceAddBody(w.space, cpBodyNew(mass, moment));
+            cpBodySetPosition(b.body, pos);
+            b.shape = cpSpaceAddShape(w.space, cpCircleShapeNew(b.body, radius, cpv(0,0)));
+            cpShapeSetFriction(b.shape, 0.9);
+            w.melons.push_back(b);
         }),
 };
 
