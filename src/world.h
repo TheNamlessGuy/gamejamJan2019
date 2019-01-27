@@ -21,12 +21,18 @@ struct house {
     cpBody* body;
 };
 
+struct annoying_friend {
+    cpShape* shape;
+    cpBody* body;
+};
+
 struct world {
     cpSpace* space = nullptr;
 
     array<cpShape*, GOOD_ENOUGH> grounds;
     array<player, GOOD_ENOUGH> players;
     array<house, GOOD_ENOUGH> houses;
+    array<annoying_friend, GOOD_ENOUGH> annoying_friends;
 
     cpCollisionHandler* pgch;
 
@@ -45,9 +51,14 @@ struct world {
             cpShapeFree(house.shape);
             cpBodyFree(house.body);
         }
+        for (auto& annoying_friend : annoying_friends) {
+            cpShapeFree(annoying_friend.shape);
+            cpBodyFree(annoying_friend.body);
+        }
         grounds.used_size = 0;
         players.used_size = 0;
         houses.used_size = 0;
+        annoying_friends.used_size = 0;
         cpSpaceFree(space);
     }
 };
@@ -142,6 +153,18 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
             cpShapeSetFriction(s, 1);
             cpSpaceAddShape(w.space, s);
             w.grounds.push_back(s);
+        }),
+    std::make_pair("annoying_friend", [](std::string const& properties, world& w){
+            annoying_friend b;
+            cpFloat radius = 5;
+            cpFloat mass = 1;
+            cpVect pos = cpv(pdouble(properties, "x"), pdouble(properties, "y"));
+            cpFloat moment = cpMomentForCircle(mass, 0, radius, cpv(0,0));
+            b.body = cpSpaceAddBody(w.space, cpBodyNew(mass, moment));
+            cpBodySetPosition(b.body, pos);
+            b.shape = cpSpaceAddShape(w.space, cpCircleShapeNew(b.body, radius, cpv(0,0)));
+            cpShapeSetFriction(b.shape, 0.9);
+            w.annoying_friends.push_back(b);
         }),
 };
 

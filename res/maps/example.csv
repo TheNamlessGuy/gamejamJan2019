@@ -10,3 +10,7 @@ ground x1=400,y1=419,x2=550,y2=460
 ground x1=550,y1=460,x2=700,y2=390
 ground x1=700,y1=390,x2=900,y2=450
 house x=-340,y=270
+annoying_friend x=100,y=370
+annoying_friend x=150,y=370
+annoying_friend x=200,y=390
+annoying_friend x=250,y=390
