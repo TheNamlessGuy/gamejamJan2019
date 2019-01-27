@@ -8,6 +8,7 @@ SDL_Rect markus_pos = {304, 226, 32, 32};
 SDL_Texture* markus = nullptr;
 SDL_Texture* heads[4] = {nullptr, nullptr, nullptr, nullptr};
 SDL_Texture* melone = nullptr;
+SDL_Texture* arm = nullptr;
 
 // World stuff
 world w;
@@ -55,10 +56,57 @@ void update_application_logic() {
     updatew(w);
 }
 
+void draw_arm_thing(cpBody* body, cpShape* shape, double camx, double camy) {
+    cpVect pos = cpBodyGetPosition(body);
+    cpFloat radius = cpPolyShapeGetRadius(shape);
+    cpVect rot = cpBodyGetRotation(body);
+    double t = atan2(rot.y, rot.x);
+    for (int i = 1; i <= cpPolyShapeGetCount(shape); ++i) {
+        cpVect from = cpPolyShapeGetVert(shape, i - 1);
+        int j = i;
+        if (j == cpPolyShapeGetCount(shape)) {
+            j = 0;
+        }
+        cpVect to = cpPolyShapeGetVert(shape, j);
+        double fromt = atan2(from.y, from.x);
+        double fromr = sqrt(from.y*from.y + from.x*from.x);
+        double tot = atan2(to.y, to.x);
+        double tor = sqrt(to.y*to.y + to.x*to.x);
+
+        double fromx = fromr * cos(t + fromt);
+        double fromy = fromr * sin(t + fromt);
+        double tox = tor * cos(t + tot);
+        double toy = tor * sin(t + tot);
+
+        double tt = atan2(toy - fromy, tox - fromx);
+
+        SDL_Rect r;
+        r.x = pos.x + fromx - camx + 320;
+        r.y = pos.y + fromy - camy + 240;
+        r.w = 15;
+        r.h = toy - fromy;
+        drawtr(arm, &r, tt);
+
+        /*thickLineRGBA(engine_data->sdl2_data.renderer.handle,
+                      pos.x + fromx - camx + 320,
+                      pos.y + fromy - camy + 240,
+                      pos.x + tox - camx + 320,
+                      pos.y + toy - camy + 240,
+                      radius,
+                      255,
+                      255,
+                      255,
+                      255);*/
+    }
+}
+
 void draw_application_view() {
     drawworld_debug(w);
     cpVect playerpos = cpBodyGetPosition(w.players.data[0].body);
     unsigned int c = 0;
+    for (auto& house : w.houses) {
+        draw_arm_thing(house.body, house.shape, playerpos.x, playerpos.y);
+    }
     for (auto& annoying_friend : w.annoying_friends) {
         cpVect pos = cpBodyGetPosition(annoying_friend.body);
         cpVect rot = cpBodyGetRotation(annoying_friend.body);
@@ -94,6 +142,7 @@ void init_application() {
     heads[2] = load_or_die("res/image/people/head3.png");
     heads[3] = load_or_die("res/image/people/head4.png");
     melone = load_or_die("res/image/melon.png");
+    arm = load_or_die("res/image/arm.png");
     loadworld(w, "res/maps/example.csv");
 }
 
@@ -105,4 +154,5 @@ void close_application() {
     SDL_DestroyTexture(heads[2]);
     SDL_DestroyTexture(heads[3]);
     SDL_DestroyTexture(melone);
+    SDL_DestroyTexture(arm);
 }

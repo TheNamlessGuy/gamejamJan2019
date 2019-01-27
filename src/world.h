@@ -418,7 +418,4 @@ void drawworld_debug(world& w) {
                       0,
                       255);
     }
-    for (auto& house : w.houses) {
-        draw_vector_thing(house.body, house.shape, playerpos.x, playerpos.y);
-    }
 }
