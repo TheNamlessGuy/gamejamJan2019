@@ -1,9 +1,12 @@
-player x=320,y=240
-ground x1=-230,y1=350,x2=-30,y2=410
+player x=-100,y=240
+ground x1=-450,y1=340,x2=-340,y2=350
+ground x1=-340,y1=350,x2=-230,y2=340
+ground x1=-230,y1=340,x2=-220,y2=335
+ground x1=-220,y1=335,x2=-30,y2=410
 ground x1=-30,y1=410,x2=10,y2=400
 ground x1=10,y1=400,x2=200,y2=450
 ground x1=200,y1=450,x2=400,y2=419
 ground x1=400,y1=419,x2=550,y2=460
 ground x1=550,y1=460,x2=700,y2=390
 ground x1=700,y1=390,x2=900,y2=450
-house x=-150,y=300
+house x=-340,y=270

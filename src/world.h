@@ -128,9 +128,9 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
             cpFloat moment = cpMomentForCircle(mass, 0, radius, cpv(0,0));
             b.body = cpSpaceAddBody(w.space, cpBodyNew(mass, moment));
             cpBodySetPosition(b.body, pos);
-            cpVect vects[5] = {cpv(-20,20),cpv(20,20),cpv(20,-20),cpv(0,-40),cpv(-20,-20)};
+            cpVect vects[5] = {cpv(-70,70),cpv(70,70),cpv(70,-70),cpv(0,-140),cpv(-70,-70)};
             b.shape = cpPolyShapeNewRaw(b.body, 5, vects, 1);
-            cpShapeSetFriction(b.shape, 0.7);
+            cpShapeSetFriction(b.shape, 0.15);
             cpSpaceAddShape(w.space, b.shape);
             w.houses.push_back(b);
         }),
