@@ -3,6 +3,8 @@
 #include <fstream>
 #include <map>
 #include <cmath>
+#include <ctime>
+#include <cstdlib>
 #include "util/array.h"
 #include "chipmunk/chipmunk.h"
 
@@ -216,6 +218,8 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
 };
 
 void loadworld(world& w, std::string const& filename) {
+    srand(time(NULL));
+
     w.destroy();
     w.space = cpSpaceNew();
 
