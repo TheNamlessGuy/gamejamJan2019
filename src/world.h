@@ -212,43 +212,48 @@ void updatew(world& w) {
     cpSpaceStep(w.space, 1.0f / MAXIMUM_PERCIEVABLE_FRAMERATE);
 }
 
+void draw_vector_thing(cpBody* body, cpShape* shape, double camx, double camy) {
+    cpVect pos = cpBodyGetPosition(body);
+    cpFloat radius = cpPolyShapeGetRadius(shape);
+    cpVect rot = cpBodyGetRotation(body);
+    double t = atan2(rot.y, rot.x);
+    for (int i = 1; i <= cpPolyShapeGetCount(shape); ++i) {
+        cpVect from = cpPolyShapeGetVert(shape, i - 1);
+        int j = i;
+        if (j == cpPolyShapeGetCount(shape)) {
+            j = 0;
+        }
+        cpVect to = cpPolyShapeGetVert(shape, j);
+        double fromt = atan2(from.y, from.x);
+        double fromr = sqrt(from.y*from.y + from.x*from.x);
+        double tot = atan2(to.y, to.x);
+        double tor = sqrt(to.y*to.y + to.x*to.x);
+
+        double fromx = fromr * cos(t + fromt);
+        double fromy = fromr * sin(t + fromt);
+        double tox = tor * cos(t + tot);
+        double toy = tor * sin(t + tot);
+
+        thickLineRGBA(engine_data->sdl2_data.renderer.handle,
+                      pos.x + fromx - camx + 320,
+                      pos.y + fromy - camy + 240,
+                      pos.x + tox - camx + 320,
+                      pos.y + toy - camy + 240,
+                      radius,
+                      255,
+                      255,
+                      255,
+                      255);
+    }
+}
+
 void drawworld_debug(world& w) {
     if (!w.players.used_size) {
         crash("ONE PLAYER PLZ OMG");
     }
     for (auto& player : w.players) {
         cpVect pos = cpBodyGetPosition(player.body);
-        cpFloat radius = cpPolyShapeGetRadius(player.shape);
-        cpVect rot = cpBodyGetRotation(player.body);
-        double t = atan2(rot.y, rot.x);
-        for (int i = 1; i <= cpPolyShapeGetCount(player.shape); ++i) {
-            cpVect from = cpPolyShapeGetVert(player.shape, i - 1);
-            int j = i;
-            if (j == cpPolyShapeGetCount(player.shape)) {
-                j = 0;
-            }
-            cpVect to = cpPolyShapeGetVert(player.shape, j);
-            double fromt = atan2(from.y, from.x);
-            double fromr = sqrt(from.y*from.y + from.x*from.x);
-            double tot = atan2(to.y, to.x);
-            double tor = sqrt(to.y*to.y + to.x*to.x);
-
-            double fromx = fromr * cos(t + fromt);
-            double fromy = fromr * sin(t + fromt);
-            double tox = tor * cos(t + tot);
-            double toy = tor * sin(t + tot);
-
-            thickLineRGBA(engine_data->sdl2_data.renderer.handle,
-                          320 + fromx,
-                          240 + fromy,
-                          320 + tox,
-                          240 + toy,
-                          radius,
-                          255,
-                          255,
-                          255,
-                          255);
-        }
+        draw_vector_thing(player.body, player.shape, pos.x, pos.y);
     }
     cpVect playerpos = cpBodyGetPosition(w.players.data[0].body);
     for (auto& ground : w.grounds) {
@@ -266,37 +271,6 @@ void drawworld_debug(world& w) {
                       255);
     }
     for (auto& house : w.houses) {
-        cpVect pos = cpBodyGetPosition(house.body);
-        cpFloat radius = cpPolyShapeGetRadius(house.shape);
-        cpVect rot = cpBodyGetRotation(house.body);
-        double t = atan2(rot.y, rot.x);
-        for (int i = 1; i <= cpPolyShapeGetCount(house.shape); ++i) {
-            cpVect from = cpPolyShapeGetVert(house.shape, i - 1);
-            int j = i;
-            if (j == cpPolyShapeGetCount(house.shape)) {
-                j = 0;
-            }
-            cpVect to = cpPolyShapeGetVert(house.shape, j);
-            double fromt = atan2(from.y, from.x);
-            double fromr = sqrt(from.y*from.y + from.x*from.x);
-            double tot = atan2(to.y, to.x);
-            double tor = sqrt(to.y*to.y + to.x*to.x);
-
-            double fromx = fromr * cos(t + fromt);
-            double fromy = fromr * sin(t + fromt);
-            double tox = tor * cos(t + tot);
-            double toy = tor * sin(t + tot);
-
-            thickLineRGBA(engine_data->sdl2_data.renderer.handle,
-                          pos.x + fromx - playerpos.x + 320,
-                          pos.y + fromy - playerpos.y + 240,
-                          pos.x + tox - playerpos.x + 320,
-                          pos.y + toy - playerpos.y + 240,
-                          radius,
-                          255,
-                          255,
-                          255,
-                          255);
-        }
+        draw_vector_thing(house.body, house.shape, playerpos.x, playerpos.y);
     }
 }
