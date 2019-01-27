@@ -91,6 +91,7 @@ void handle_window_event( SDL_WindowEvent* e )
 bool LEFT = false;
 bool RIGHT = false;
 bool UP = false;
+bool DASH = false;
 
 bool RESET = false;
 
@@ -108,6 +109,9 @@ void handle_key_press( SDL_KeyboardEvent* e )
             break;
         case SDLK_r:
             RESET = (e->state == SDL_PRESSED);
+            break;
+        case SDLK_SPACE:
+            DASH = (e->state == SDL_PRESSED);
             break;
         default:
             break;

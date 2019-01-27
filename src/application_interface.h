@@ -83,9 +83,6 @@ void draw_application_view() {
         r.w = 32;
         r.h = 32;
         drawtr(melone, &r, a);
-        if (c > 2) {
-            c = 0;
-        }
     }
     drawt(markus, &markus_pos);
 }

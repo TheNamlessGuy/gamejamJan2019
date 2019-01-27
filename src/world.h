@@ -46,6 +46,8 @@ struct world {
     cpCollisionHandler* pgch;
     cpCollisionHandler* pach;
     cpCollisionHandler* pmch;
+    cpCollisionHandler* mhch;
+    cpCollisionHandler* ahch;
 
     void destroy() {
         if (!space) {
@@ -104,6 +106,16 @@ void collisionend(cpArbiter *arb, struct cpSpace *space, cpDataPointer data) {
             break;
         }
     }
+}
+
+unsigned char collisionstart2(cpArbiter *arb, struct cpSpace *space, void* data) {
+    crash("U LOOOOOSE");
+    return 1;
+}
+
+unsigned char collisionstart3(cpArbiter *arb, struct cpSpace *space, void* data) {
+    crash("U wEEEEEN");
+    return 1;
 }
 
 double pdouble(std::string const& properties, std::string const& prop) {
@@ -218,6 +230,14 @@ void loadworld(world& w, std::string const& filename) {
     w.pmch->separateFunc = collisionend;
     w.pmch->userData = (void*)&w;
 
+    w.mhch = cpSpaceAddCollisionHandler(w.space, CTMEL0N, CTHOUSE);
+    w.mhch->beginFunc = collisionstart3;
+    w.mhch->userData = (void*)&w;
+
+    w.ahch = cpSpaceAddCollisionHandler(w.space, CTANNOYING_FRIEND, CTHOUSE);
+    w.ahch->beginFunc = collisionstart2;
+    w.ahch->userData = (void*)&w;
+
     cpSpaceSetGravity(w.space, cpv(0, 200));
     std::ifstream file(filename);
     if (!file.good()) {
@@ -283,6 +303,23 @@ void updatew(world& w) {
             pos.y = 0;
             cpBodySetPosition(player.body, pos);
             cpBodySetVelocity(player.body, cpv(0, 0));
+        }
+    }
+    if (DASH && (LEFT || RIGHT)) {
+        DASH = false;
+        for (auto& player : w.players) {
+            if (player.standing) {
+                const cpVect& vec = cpBodyGetVelocity(player.body);
+                cpVect impulse = cpv(0, 0);
+                if (LEFT) {
+                    impulse.x = vec.x - 250;
+                    impulse.y = vec.y - 40;
+                } else {
+                    impulse.x = vec.x + 250;
+                    impulse.y = vec.y - 40;
+                }
+                cpBodySetVelocity(player.body, impulse);
+            }
         }
     }
     cpSpaceStep(w.space, 1.0f / MAXIMUM_PERCIEVABLE_FRAMERATE);
