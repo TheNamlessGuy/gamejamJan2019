@@ -27,6 +27,8 @@ struct house {
 struct annoying_friend {
     cpShape* shape;
     cpBody* body;
+    unsigned int jumpcounter;
+    unsigned int anothercounter;
 };
 
 struct melon {
@@ -114,7 +116,7 @@ unsigned char collisionstart2(cpArbiter *arb, struct cpSpace *space, void* data)
 }
 
 unsigned char collisionstart3(cpArbiter *arb, struct cpSpace *space, void* data) {
-    crash("U wEEEEEN");
+    crash("U ARE WINNER");
     return 1;
 }
 
@@ -185,6 +187,8 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
         }),
     std::make_pair("annoying_friend", [](std::string const& properties, world& w){
             annoying_friend b;
+            b.jumpcounter = (rand() % 250) + 1;
+            b.anothercounter = (rand() % 130) + 1;
             cpFloat radius = 20;
             cpFloat mass = 1;
             cpVect pos = cpv(pdouble(properties, "x"), pdouble(properties, "y"));
@@ -313,13 +317,39 @@ void updatew(world& w) {
                 cpVect impulse = cpv(0, 0);
                 if (LEFT) {
                     impulse.x = vec.x - 250;
-                    impulse.y = vec.y - 40;
+                    impulse.y = vec.y - 65;
                 } else {
                     impulse.x = vec.x + 250;
-                    impulse.y = vec.y - 40;
+                    impulse.y = vec.y - 65;
                 }
                 cpBodySetVelocity(player.body, impulse);
             }
+        }
+    }
+    for (auto& annoying_friend : w.annoying_friends) {
+        annoying_friend.jumpcounter--;
+        annoying_friend.anothercounter--;
+        if (!annoying_friend.jumpcounter) {
+            annoying_friend.jumpcounter = (rand() % 230) + 1;
+            const cpVect& vec = cpBodyGetVelocity(annoying_friend.body);
+            cpVect impulse = cpv(0, 0);
+            impulse.x = vec.x;
+            impulse.y = vec.y - 120;
+            cpBodySetVelocity(annoying_friend.body, impulse);
+        }
+        if (!annoying_friend.anothercounter) {
+            annoying_friend.anothercounter = (rand() % 130) + 1;
+            const cpVect& vec = cpBodyGetVelocity(annoying_friend.body);
+            cpVect impulse = cpv(0, 0);
+            unsigned int d = rand() % 2;
+            if (d) {
+                impulse.x = vec.x - 100;
+                impulse.y = vec.y - 30;
+            } else {
+                impulse.x = vec.x + 100;
+                impulse.y = vec.y - 30;
+            }
+            cpBodySetVelocity(annoying_friend.body, impulse);
         }
     }
     cpSpaceStep(w.space, 1.0f / MAXIMUM_PERCIEVABLE_FRAMERATE);
