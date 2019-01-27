@@ -6,7 +6,7 @@
 
 SDL_Rect markus_pos = {304, 226, 32, 32};
 SDL_Texture* markus = nullptr;
-SDL_Texture* heads[4] = {nullptr, nullptr, nullptr, nullptr};
+SDL_Texture* heads[7] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
 SDL_Texture* melone = nullptr;
 SDL_Texture* arm = nullptr;
 
@@ -111,7 +111,7 @@ void draw_application_view() {
         r.w = 32;
         r.h = 40;
         drawtr(heads[c++], &r, a);
-        if (c > 3) {
+        if (c > 7) {
             c = 0;
         }
     }
@@ -135,6 +135,9 @@ void init_application() {
     heads[1] = load_or_die("res/image/people/head2.png");
     heads[2] = load_or_die("res/image/people/head3.png");
     heads[3] = load_or_die("res/image/people/head4.png");
+    heads[4] = load_or_die("res/image/people/head5.png");
+    heads[5] = load_or_die("res/image/people/head6.png");
+    heads[6] = load_or_die("res/image/people/head7.png");
     melone = load_or_die("res/image/melon.png");
     arm = load_or_die("res/image/arm.png");
     loadworld(w, "res/maps/example.csv");
@@ -147,6 +150,9 @@ void close_application() {
     SDL_DestroyTexture(heads[1]);
     SDL_DestroyTexture(heads[2]);
     SDL_DestroyTexture(heads[3]);
+    SDL_DestroyTexture(heads[4]);
+    SDL_DestroyTexture(heads[5]);
+    SDL_DestroyTexture(heads[6]);
     SDL_DestroyTexture(melone);
     SDL_DestroyTexture(arm);
 }
