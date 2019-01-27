@@ -63,8 +63,8 @@ void draw_application_view() {
         cpVect rot = cpBodyGetRotation(annoying_friend.body);
         double a = atan2(rot.y, rot.x);
         SDL_Rect r;
-        r.x = pos.x - playerpos.x + 320 - 15;
-        r.y = pos.y - playerpos.y + 240 - 30;
+        r.x = pos.x - playerpos.x + 320 - 8;
+        r.y = pos.y - playerpos.y + 240 - 15;
         r.w = 32;
         r.h = 40;
         drawtr(heads[c++], &r, a);

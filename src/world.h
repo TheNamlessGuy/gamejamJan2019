@@ -156,7 +156,7 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
         }),
     std::make_pair("annoying_friend", [](std::string const& properties, world& w){
             annoying_friend b;
-            cpFloat radius = 5;
+            cpFloat radius = 20;
             cpFloat mass = 1;
             cpVect pos = cpv(pdouble(properties, "x"), pdouble(properties, "y"));
             cpFloat moment = cpMomentForCircle(mass, 0, radius, cpv(0,0));

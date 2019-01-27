@@ -1,4 +1,5 @@
 player x=-100,y=240
+ground x1=-580,y1=350,x2=-450,y2=340
 ground x1=-450,y1=340,x2=-340,y2=350
 ground x1=-340,y1=350,x2=-230,y2=340
 ground x1=-230,y1=340,x2=-220,y2=335
@@ -9,6 +10,8 @@ ground x1=200,y1=450,x2=400,y2=419
 ground x1=400,y1=419,x2=550,y2=460
 ground x1=550,y1=460,x2=700,y2=390
 ground x1=700,y1=390,x2=900,y2=450
+ground x1=900,y1=450,x2=1120,y2=340
+ground x1=1120,y1=340,x2=1230,y2=320
 house x=-340,y=270
 annoying_friend x=100,y=370
 annoying_friend x=150,y=370
