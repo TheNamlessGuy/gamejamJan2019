@@ -9,6 +9,9 @@
 #define GOOD_ENOUGH 12532
 #define CTPLAYER 0
 #define CTGROUND 1
+#define CTHOUSE 2
+#define CTANNOYING_FRIEND 3
+#define CTMEL0N 4
 
 struct player {
     cpShape* shape;
@@ -41,6 +44,8 @@ struct world {
     array<melon, GOOD_ENOUGH> melons;
 
     cpCollisionHandler* pgch;
+    cpCollisionHandler* pach;
+    cpCollisionHandler* pmch;
 
     void destroy() {
         if (!space) {
@@ -152,6 +157,7 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
             cpBodySetPosition(b.body, pos);
             cpVect vects[5] = {cpv(-70,70),cpv(70,70),cpv(70,-70),cpv(0,-140),cpv(-70,-70)};
             b.shape = cpPolyShapeNewRaw(b.body, 5, vects, 1);
+            cpShapeSetCollisionType(b.shape, CTHOUSE);
             cpShapeSetFriction(b.shape, 0.15);
             cpSpaceAddShape(w.space, b.shape);
             w.houses.push_back(b);
@@ -174,7 +180,7 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
             b.body = cpSpaceAddBody(w.space, cpBodyNew(mass, moment));
             cpBodySetPosition(b.body, pos);
             b.shape = cpSpaceAddShape(w.space, cpCircleShapeNew(b.body, radius, cpv(0,0)));
-            cpShapeSetCollisionType(b.shape, CTGROUND);
+            cpShapeSetCollisionType(b.shape, CTANNOYING_FRIEND);
             cpShapeSetFriction(b.shape, 0.9);
             w.annoying_friends.push_back(b);
         }),
@@ -187,7 +193,7 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
             b.body = cpSpaceAddBody(w.space, cpBodyNew(mass, moment));
             cpBodySetPosition(b.body, pos);
             b.shape = cpSpaceAddShape(w.space, cpCircleShapeNew(b.body, radius, cpv(0,0)));
-            cpShapeSetCollisionType(b.shape, CTGROUND);
+            cpShapeSetCollisionType(b.shape, CTMEL0N);
             cpShapeSetFriction(b.shape, 0.9);
             w.melons.push_back(b);
         }),
@@ -196,10 +202,22 @@ std::map<std::string, void (*)(std::string const& properties, world& w)> thinglo
 void loadworld(world& w, std::string const& filename) {
     w.destroy();
     w.space = cpSpaceNew();
+
     w.pgch = cpSpaceAddCollisionHandler(w.space, CTPLAYER, CTGROUND);
     w.pgch->beginFunc = collisionstart;
     w.pgch->separateFunc = collisionend;
     w.pgch->userData = (void*)&w;
+
+    w.pach = cpSpaceAddCollisionHandler(w.space, CTPLAYER, CTANNOYING_FRIEND);
+    w.pach->beginFunc = collisionstart;
+    w.pach->separateFunc = collisionend;
+    w.pach->userData = (void*)&w;
+
+    w.pmch = cpSpaceAddCollisionHandler(w.space, CTPLAYER, CTMEL0N);
+    w.pmch->beginFunc = collisionstart;
+    w.pmch->separateFunc = collisionend;
+    w.pmch->userData = (void*)&w;
+
     cpSpaceSetGravity(w.space, cpv(0, 200));
     std::ifstream file(filename);
     if (!file.good()) {
