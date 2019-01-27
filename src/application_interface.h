@@ -25,6 +25,11 @@ void drawtr(SDL_Texture* t, SDL_Rect* r, double a) {
     SDL_RenderCopyEx(engine_data->sdl2_data.renderer.handle, t, nullptr, r, radiansaresuperior(a), nullptr, static_cast<SDL_RendererFlip>(0));
 }
 
+void drawtrrr(SDL_Texture* t, SDL_Rect* r, double a) {
+    SDL_Point rr = {0, 0};
+    SDL_RenderCopyEx(engine_data->sdl2_data.renderer.handle, t, nullptr, r, radiansaresuperior(a), &rr, static_cast<SDL_RendererFlip>(0));
+}
+
 #include "database.h"
 
 struct ImageLoader {
@@ -78,25 +83,14 @@ void draw_arm_thing(cpBody* body, cpShape* shape, double camx, double camy) {
         double tox = tor * cos(t + tot);
         double toy = tor * sin(t + tot);
 
-        double tt = atan2(toy - fromy, tox - fromx);
+        double tt = atan2(fromy - toy, fromx - tox);
 
         SDL_Rect r;
         r.x = pos.x + fromx - camx + 320;
         r.y = pos.y + fromy - camy + 240;
-        r.w = 15;
-        r.h = toy - fromy;
-        drawtr(arm, &r, tt);
-
-        /*thickLineRGBA(engine_data->sdl2_data.renderer.handle,
-                      pos.x + fromx - camx + 320,
-                      pos.y + fromy - camy + 240,
-                      pos.x + tox - camx + 320,
-                      pos.y + toy - camy + 240,
-                      radius,
-                      255,
-                      255,
-                      255,
-                      255);*/
+        r.w = 32;
+        r.h = 130;
+        drawtrrr(arm, &r, tt + (3.14159265358979 / 2));
     }
 }
 
